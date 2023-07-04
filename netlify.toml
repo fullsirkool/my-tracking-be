@@ -3,6 +3,6 @@
   publish = "dist"
 
 [[redirects]]
-  from = "/*"
-  to = "main.js"
+  from = "/api/*"
+  to = "https://my-tracking-be.netlify.app/:splat"
   status = 200
