@@ -1,2 +1,4 @@
 [build]
-  command = "npx prisma generate && yarn build && yarn start:prod"
+  command = "npx prisma generate && yarn build"
+[build.post]
+  command = "yarn start:prod"
