@@ -1,5 +1,2 @@
 [build]
-  command = "npx prisma generate && yarn build && node main.js"
-  publish = "dist"
-[dev]
-  command = "yarn start:dev"
+  command = "npx prisma generate && yarn build && yarn start:prod"
