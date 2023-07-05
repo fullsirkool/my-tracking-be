@@ -1,4 +1,5 @@
 [build]
   command = "npx prisma generate && yarn build"
-[build.post]
-  command = "yarn start:prod"
+[build.lifecycle]
+  [build.lifecycle.deploy]
+    command = "yarn start:prod"
