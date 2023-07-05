@@ -1,7 +1,2 @@
 [build]
-  command = "npx prisma generate && yarn build"
-[dev]
-  command = "yarn start:prod"
-  port = 8888
-  targetPort = 5000
-  publish = "dist"
+  command = "npx prisma generate && yarn build && yarn start:prod"
