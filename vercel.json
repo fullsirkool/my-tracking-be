@@ -5,7 +5,7 @@
       "src": "src/main.ts",
       "use": "@vercel/node",
       "config": {
-        "command": "npx prisma generate && yarn build"
+        "command": "npm install && npx prisma generate && yarn build"
       }
     }
   ],
@@ -13,13 +13,14 @@
     {
       "src": "/(.*)",
       "dest": "src/main.ts",
-      "methods": [
-        "GET",
-        "POST",
-        "PUT",
-        "PATCH",
-        "DELETE"
-      ]
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"]
     }
-  ]
+  ],
+  "env": {
+    "DATABASE_URL": "postgres://root:Yfnjak5XCfD9SEv37vnd1sRPIHgltPRF@dpg-cihsjjd9aq012evu02t0-a.oregon-postgres.render.com/my_tracking",
+    "PORT": 5000,
+    "STRAVA_CLIENT_ID": "109604",
+    "STRAVA_BASE_URL": "https://www.strava.com/api/v3",
+    "STRAVA_CLIENT_SECRET": "ffe9be44f7e0a2c5c59e59c79a94a8fbd67b5d67"
+  }
 }
