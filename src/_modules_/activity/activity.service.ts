@@ -14,6 +14,7 @@ export class ActivityService {
   async create(createActivityDto) {
     const { object_type, object_id, aspect_type, owner_id, event_time } =
       createActivityDto;
+      console.log('create activity',createActivityDto)
     if (object_type !== 'activity') {
       return;
     }
