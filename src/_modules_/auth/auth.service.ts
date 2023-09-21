@@ -96,7 +96,7 @@ export class AuthService {
                 params: {
                   client_id: process.env.STRAVA_CLIENT_ID,
                   client_secret: process.env.STRAVA_CLIENT_SECRET,
-                  callback_url: '',
+                  callback_url: process.env.CALLBACK_URL,
                   verify_token: process.env.STRAVA
                 },
                 headers: {
