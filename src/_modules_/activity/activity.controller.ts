@@ -11,7 +11,7 @@ export class ActivityController {
     return this.activityService.create(data);
   }
 
-  @Get('/verify')
+  @Get('/event')
   verify(@Query() params) {
     const mode = params['hub.mode'];
     const hub_challenge = params['hub.challenge'];
