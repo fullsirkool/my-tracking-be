@@ -44,7 +44,6 @@ export class AuthService {
             }),
           ),
       );
-      console.log('response', data);
       const { token_type, access_token, expires_at, refresh_token } = data;
       const {
         id,
@@ -75,7 +74,6 @@ export class AuthService {
         refreshToken: refresh_token,
       };
       const findUser = await this.userService.findByStravaId(id);
-      console.log('findUser', findUser);
       if (findUser) {
         const changeTokenDto = {
           accessToken: access_token,
@@ -89,6 +87,31 @@ export class AuthService {
         };
       } else {
         const user = await this.userService.create(sendUser);
+        const { data } = await firstValueFrom(
+          this.httpService
+            .post(
+              `${process.env.STRAVA_BASE_URL}/push_subscriptions`,
+              {},
+              {
+                params: {
+                  client_id: process.env.STRAVA_CLIENT_ID,
+                  client_secret: process.env.STRAVA_CLIENT_SECRET,
+                  callback_url: '',
+                  verify_token: process.env.STRAVA
+                },
+                headers: {
+                  Authorization: `Bearer ${user.accessToken}`,
+                },
+              },
+            )
+            .pipe(
+              catchError((error: AxiosError) => {
+                console.error(error.response.data);
+                throw 'An error happened!';
+              }),
+            ),
+        );
+        console.log('push subscription', data)
         return {
           token: user.accessToken,
           expireTime: user.accessTokenExpireTime,

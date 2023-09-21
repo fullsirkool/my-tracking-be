@@ -2,7 +2,7 @@ import { PrismaService } from './../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './user.dto';
 import { User } from '@prisma/client';
-import { ChangeTokenDto } from 'src/auth/auth.dto';
+import { ChangeTokenDto } from '../auth/auth.dto';
 
 @Injectable()
 export class UserService {

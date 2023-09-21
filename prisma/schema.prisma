@@ -86,3 +86,11 @@ model SplitMetric {
 
   @@unique([activityId, split])
 }
+
+model Temp {
+  id         Int    @id @unique @default(autoincrement())
+  activityId Int?
+  name       String?
+  distance   Float?
+  movingTime Float?
+}
