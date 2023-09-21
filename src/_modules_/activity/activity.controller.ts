@@ -16,6 +16,7 @@ export class ActivityController {
     const mode = params['hub.mode'];
     const hub_challenge = params['hub.challenge'];
     const verify_token = params['hub.verify_token'];
+    console.log('get event', mode, hub_challenge, verify_token)
     if (mode && verify_token) {
       // Verifies that the mode and token sent are valid
       if (mode === 'subscribe' && verify_token === process.env.VERIFY_TOKEN) {
