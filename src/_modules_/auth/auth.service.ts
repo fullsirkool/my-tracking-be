@@ -45,6 +45,7 @@ export class AuthService {
           ),
       );
       const { token_type, access_token, expires_at, refresh_token } = data;
+      console.log(token_type, access_token, expires_at, refresh_token)
       const {
         id,
         firstname,
@@ -97,7 +98,7 @@ export class AuthService {
                   client_id: process.env.STRAVA_CLIENT_ID,
                   client_secret: process.env.STRAVA_CLIENT_SECRET,
                   callback_url: process.env.CALLBACK_URL,
-                  verify_token: process.env.STRAVA
+                  verify_token: process.env.VERIFY_TOKEN
                 },
                 headers: {
                   Authorization: `Bearer ${user.accessToken}`,
