@@ -14,17 +14,21 @@ export class ActivityService {
   async create(createActivityDto) {
     const { object_type, object_id, aspect_type, owner_id, event_time } =
       createActivityDto;
-      console.log('create activity',createActivityDto)
+    console.log('create activity', createActivityDto);
     if (object_type !== 'activity') {
       return;
     }
-    const { refreshToken } = await this.prisma.user.findUnique({
+    const owner = await this.prisma.user.findUnique({
       where: {
         stravaId: owner_id,
       },
     });
+    if (!owner) {
+      return;
+    }
+    const { refreshToken } = owner;
     const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
-    const { data } = await firstValueFrom(
+    const tokenRes = await firstValueFrom(
       this.httpService
         .post(
           url,
@@ -45,8 +49,8 @@ export class ActivityService {
           }),
         ),
     );
+    const { access_token } = tokenRes.data;
 
-    const { access_token } = data;
     const activityUrl = `/activities/${object_id}`;
 
     const activityResponse = await firstValueFrom(
@@ -58,11 +62,13 @@ export class ActivityService {
         })
         .pipe(
           catchError((error: AxiosError) => {
-            console.error(error.response.data);
+            console.error(error);
             throw 'An error happened!';
           }),
         ),
     );
+
+    console.log('activityResponse', activityResponse);
 
     const { id, distance, moving_time, name } = activityResponse.data;
     const activity = await this.prisma.temp.create({
@@ -73,6 +79,6 @@ export class ActivityService {
         name,
       },
     });
-    return activity
+    return activity;
   }
 }
