@@ -23,9 +23,13 @@ export class ActivityService {
         stravaId: owner_id,
       },
     });
+
+    console.log('owner', owner)
+
     if (!owner) {
       return;
     }
+
     const { refreshToken } = owner;
     const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
     const tokenRes = await firstValueFrom(
@@ -44,11 +48,14 @@ export class ActivityService {
         )
         .pipe(
           catchError((error: AxiosError) => {
-            console.error(error.response.data);
+            console.error(error);
             throw 'An error happened!';
           }),
         ),
     );
+
+    console.log('tokenRes', tokenRes.data)
+
     const { access_token } = tokenRes.data;
 
     const activityUrl = `/activities/${object_id}`;
@@ -68,7 +75,7 @@ export class ActivityService {
         ),
     );
 
-    console.log('activityResponse', activityResponse);
+    console.log('activityResponse', activityResponse.data);
 
     const { id, distance, moving_time, name } = activityResponse.data;
     const activity = await this.prisma.temp.create({
