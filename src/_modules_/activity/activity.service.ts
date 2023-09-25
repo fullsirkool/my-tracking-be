@@ -58,7 +58,7 @@ export class ActivityService {
 
     const { access_token } = tokenRes.data;
 
-    const activityUrl = `/activities/${object_id}`;
+    const activityUrl = `${process.env.STRAVA_BASE_URL}/activities/${object_id}`;
 
     const activityResponse = await firstValueFrom(
       this.httpService
