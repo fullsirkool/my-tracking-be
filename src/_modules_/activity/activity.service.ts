@@ -3,30 +3,27 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class ActivityService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly httpService: HttpService,
+    private readonly authService: AuthService,
   ) {}
 
-  async create(createActivityDto) {
-    const { object_type, object_id, aspect_type, owner_id, event_time } =
-      createActivityDto;
-    console.log('create activity', createActivityDto);
-    if (object_type !== 'activity') {
+  async getWebhookResponse(createActivityDto) {
+    const { object_type, object_id, owner_id, aspect_type } = createActivityDto;
+
+    if (object_type !== 'activity' || aspect_type !== 'create') {
       return;
     }
 
-    const foundedActivity = await this.prisma.temp.findUnique({
-      where: {
-        activityId: `${object_id}`
-      }
-    })
+    const createdActivity = await this.findOneByActivityId(object_id);
 
-    if (foundedActivity) {
-      return
+    if (createdActivity) {
+      return;
     }
 
     const owner = await this.prisma.user.findUnique({
@@ -35,47 +32,90 @@ export class ActivityService {
       },
     });
 
-    console.log('owner', owner)
-
     if (!owner) {
       return;
     }
 
     const { refreshToken } = owner;
-    const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
-    const tokenRes = await firstValueFrom(
-      this.httpService
-        .post(
-          url,
-          {},
-          {
-            params: {
-              client_id: process.env.STRAVA_CLIENT_ID,
-              client_secret: process.env.STRAVA_CLIENT_SECRET,
-              grant_type: `refresh_token`,
-              refresh_token: refreshToken,
-            },
-          },
-        )
-        .pipe(
-          catchError((error: AxiosError) => {
-            console.error(error);
-            throw 'An error happened!';
-          }),
-        ),
+
+    const tokenRes = await this.authService.resetToken(refreshToken);
+
+    const { access_token } = tokenRes;
+
+    const foundedActivity = await this.findStravaActivity(
+      object_id,
+      access_token,
     );
 
-    console.log('tokenRes', tokenRes.data)
+    const res = await this.createActivity(foundedActivity);
 
-    const { access_token } = tokenRes.data;
+    return res;
+  }
 
-    const activityUrl = `${process.env.STRAVA_BASE_URL}/activities/${object_id}`;
+  async createActivity(activityDto) {
+    const {
+      id,
+      athlete,
+      name,
+      distance,
+      moving_time,
+      elapsed_time,
+      total_elevation_gain,
+      start_date,
+      start_date_local,
+      type,
+      visibility,
+      average_speed,
+      max_speed,
+      splits_metric,
+    } = activityDto;
+    const userId = athlete.id;
+    let isValid = true;
+    if (type !== 'Run') {
+      isValid = false;
+    }
 
-    const activityResponse = await firstValueFrom(
+    const invalidSplitMetric = splits_metric.find(item => {
+      const {distance, moving_time} = item
+      const pace = (moving_time / (distance / 1000)) / 60
+      if (pace > 15 || pace < 4) {
+        return true
+      }
+    })
+
+    if (invalidSplitMetric) {
+      isValid = false;
+    }
+
+    const activity = await this.prisma.activity.create({
+      data: {
+        id,
+        userId,
+        name,
+        distance,
+        movingTime: moving_time,
+        elapsedTime: elapsed_time,
+        totalElevationGain: total_elevation_gain,
+        type,
+        startDate: start_date,
+        startDateLocal: start_date_local,
+        visibility: visibility,
+        averageSpeed: average_speed,
+        maxSpeed: max_speed,
+        splitMetrics: splits_metric,
+        isValid,
+      },
+    });
+    return activity;
+  }
+
+  async findStravaActivity(id: number, token: string) {
+    const activityUrl = `${process.env.STRAVA_BASE_URL}/activities/${id}`;
+    const { data } = await firstValueFrom(
       this.httpService
         .get(activityUrl, {
           headers: {
-            Authorization: `Bearer ${access_token}`,
+            Authorization: `Bearer ${token}`,
           },
         })
         .pipe(
@@ -86,17 +126,14 @@ export class ActivityService {
         ),
     );
 
-    console.log('activityResponse', activityResponse.data);
+    return data;
+  }
 
-    const { id, distance, moving_time, name } = activityResponse.data;
-    const activity = await this.prisma.temp.create({
-      data: {
+  async findOneByActivityId(id: string) {
+    return await this.prisma.temp.findUnique({
+      where: {
         activityId: `${id}`,
-        distance,
-        movingTime: moving_time,
-        name,
       },
     });
-    return activity;
   }
 }

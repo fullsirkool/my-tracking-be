@@ -8,7 +8,7 @@ export class ActivityController {
 
   @Post('/event')
   createActivity(@Body() data) {
-    return this.activityService.create(data);
+    return this.activityService.getWebhookResponse(data);
   }
 
   @Get('/event')

@@ -27,6 +27,7 @@ model User {
   accessTokenExpireTime Int               @map(name: "access_token_expire_time")
   refreshToken          String?           @map(name: "refresh_token")
   leagueGroupUsers      LeagueGroupUser[]
+  activities            Activity[]
 }
 
 model League {
@@ -65,11 +66,13 @@ model Activity {
   totalElevationGain Float         @map(name: "total_elevation_gain")
   type               String
   startDate          DateTime      @default(now()) @map(name: "start_date")
+  startDateLocal     DateTime      @default(now()) @map(name: "start_date_local")
   visibility         String
-  averageSpeed       Int           @map(name: "average_speed")
-  maxSpeed           Int           @map(name: "max_speed")
+  averageSpeed       Float           @map(name: "average_speed")
+  maxSpeed           Float           @map(name: "max_speed")
   isValid            Boolean       @default(true) @map(name: "is_valid")
   splitMetrics       SplitMetric[]
+  user               User          @relation(fields: [userId], references: [id])
 }
 
 model SplitMetric {

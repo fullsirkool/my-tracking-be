@@ -15,86 +15,102 @@ export class AuthService {
   ) {}
 
   async signIn(code: string): Promise<AuthDto> {
-    try {
-      console.log(
-        process.env.STRAVA_BASE_URL,
-        code,
-        process.env.STRAVA_CLIENT_ID,
-        process.env.STRAVA_CLIENT_SECRET,
-      );
-      const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
-      const { data } = await firstValueFrom(
-        this.httpService
-          .post(
-            url,
-            {},
-            {
-              params: {
-                client_id: process.env.STRAVA_CLIENT_ID,
-                client_secret: process.env.STRAVA_CLIENT_SECRET,
-                code: code,
-                grant_type: `authorization_code`,
-              },
+    const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
+    const { data } = await firstValueFrom(
+      this.httpService
+        .post(
+          url,
+          {},
+          {
+            params: {
+              client_id: process.env.STRAVA_CLIENT_ID,
+              client_secret: process.env.STRAVA_CLIENT_SECRET,
+              code: code,
+              grant_type: `authorization_code`,
             },
-          )
-          .pipe(
-            catchError((error: AxiosError) => {
-              console.error(error.response.data);
-              throw 'An error happened!';
-            }),
-          ),
-      );
-      const { token_type, access_token, expires_at, refresh_token } = data;
-      console.log(token_type, access_token, expires_at, refresh_token)
-      const {
-        id,
-        firstname,
-        lastname,
-        bio,
-        city,
-        state,
-        country,
-        sex,
-        profile_medium,
-        profile,
-      } = data.athlete;
-      const sendUser = {
-        stravaId: id,
-        firstName: firstname,
-        lastName: lastname,
-        bio,
-        city,
-        state,
-        country,
-        sex,
-        profileMedium: profile_medium,
-        profile,
-        tokenType: token_type,
+          },
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.error(error.response.data);
+            throw 'An error happened!';
+          }),
+        ),
+    );
+    const { token_type, access_token, expires_at, refresh_token } = data;
+    const {
+      id,
+      firstname,
+      lastname,
+      bio,
+      city,
+      state,
+      country,
+      sex,
+      profile_medium,
+      profile,
+    } = data.athlete;
+    const sendUser = {
+      stravaId: id,
+      firstName: firstname,
+      lastName: lastname,
+      bio,
+      city,
+      state,
+      country,
+      sex,
+      profileMedium: profile_medium,
+      profile,
+      tokenType: token_type,
+      accessToken: access_token,
+      accessTokenExpireTime: expires_at,
+      refreshToken: refresh_token,
+    };
+    const findUser = await this.userService.findByStravaId(id);
+    if (findUser) {
+      const changeTokenDto = {
         accessToken: access_token,
         accessTokenExpireTime: expires_at,
         refreshToken: refresh_token,
       };
-      const findUser = await this.userService.findByStravaId(id);
-      if (findUser) {
-        const changeTokenDto = {
-          accessToken: access_token,
-          accessTokenExpireTime: expires_at,
-          refreshToken: refresh_token,
-        };
-        const user = await this.userService.changeToken(id, changeTokenDto);
-        return {
-          token: user.accessToken,
-          expireTime: user.accessTokenExpireTime,
-        };
-      } else {
-        const user = await this.userService.create(sendUser);
-        return {
-          token: user.accessToken,
-          expireTime: user.accessTokenExpireTime,
-        };
-      }
-    } catch (error) {
-      console.error(error);
+      const user = await this.userService.changeToken(id, changeTokenDto);
+      return {
+        token: user.accessToken,
+        expireTime: user.accessTokenExpireTime,
+      };
+    } else {
+      const user = await this.userService.create(sendUser);
+      return {
+        token: user.accessToken,
+        expireTime: user.accessTokenExpireTime,
+      };
     }
+  }
+
+  async resetToken(refreshToken: string) {
+    const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
+    const { data } = await firstValueFrom(
+      this.httpService
+        .post(
+          url,
+          {},
+          {
+            params: {
+              client_id: process.env.STRAVA_CLIENT_ID,
+              client_secret: process.env.STRAVA_CLIENT_SECRET,
+              grant_type: `refresh_token`,
+              refresh_token: refreshToken,
+            },
+          },
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.error(error);
+            throw 'An error happened!';
+          }),
+        ),
+    );
+
+    return data;
   }
 }
