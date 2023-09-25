@@ -21,7 +21,7 @@ export class ActivityService {
 
     const foundedActivity = await this.prisma.temp.findUnique({
       where: {
-        activityId: object_id
+        activityId: `${object_id}`
       }
     })
 
@@ -91,7 +91,7 @@ export class ActivityService {
     const { id, distance, moving_time, name } = activityResponse.data;
     const activity = await this.prisma.temp.create({
       data: {
-        activityId: id,
+        activityId: `${id}`,
         distance,
         movingTime: moving_time,
         name,
