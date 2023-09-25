@@ -73,17 +73,29 @@ export class ActivityService {
       isValid = false;
     }
 
-    const invalidSplitMetric = splits_metric.find(item => {
-      const {distance, moving_time} = item
-      const pace = (moving_time / (distance / 1000)) / 60
+    const invalidSplitMetric = splits_metric.find((item) => {
+      const { distance, moving_time } = item;
+      const pace = moving_time / (distance / 1000) / 60;
       if (pace > 15 || pace < 4) {
-        return true
+        return true;
       }
-    })
+    });
 
     if (invalidSplitMetric) {
       isValid = false;
     }
+
+    const splitMetrics = splits_metric.map((item) => ({
+      activityId: id,
+      split: item.split,
+      distance: item.distance,
+      elapsedTime: item.elapsed_time,
+      elevationDifference: item.elevation_difference,
+      movingTime: item.moving_time,
+      averageSpeed: item.average_speed,
+      averageGradeAdjustedSpeed: item.average_grade_adjusted_speed,
+      paceZone: item.pace_zone,
+    }));
 
     const activity = await this.prisma.activity.create({
       data: {
@@ -100,7 +112,7 @@ export class ActivityService {
         visibility: visibility,
         averageSpeed: average_speed,
         maxSpeed: max_speed,
-        splitMetrics: splits_metric,
+        splitMetrics,
         isValid,
       },
     });
