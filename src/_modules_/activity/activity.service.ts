@@ -18,6 +18,17 @@ export class ActivityService {
     if (object_type !== 'activity') {
       return;
     }
+
+    const foundedActivity = await this.prisma.temp.findUnique({
+      where: {
+        activityId: object_id
+      }
+    })
+
+    if (foundedActivity) {
+      return
+    }
+
     const owner = await this.prisma.user.findUnique({
       where: {
         stravaId: owner_id,

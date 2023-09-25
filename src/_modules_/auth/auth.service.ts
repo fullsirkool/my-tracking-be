@@ -88,31 +88,6 @@ export class AuthService {
         };
       } else {
         const user = await this.userService.create(sendUser);
-        const { data } = await firstValueFrom(
-          this.httpService
-            .post(
-              `${process.env.STRAVA_BASE_URL}/push_subscriptions`,
-              {},
-              {
-                params: {
-                  client_id: process.env.STRAVA_CLIENT_ID,
-                  client_secret: process.env.STRAVA_CLIENT_SECRET,
-                  callback_url: process.env.CALLBACK_URL,
-                  verify_token: process.env.VERIFY_TOKEN
-                },
-                headers: {
-                  Authorization: `Bearer ${user.accessToken}`,
-                },
-              },
-            )
-            .pipe(
-              catchError((error: AxiosError) => {
-                console.error(error.response.data);
-                throw 'An error happened!';
-              }),
-            ),
-        );
-        console.log('push subscription', data)
         return {
           token: user.accessToken,
           expireTime: user.accessTokenExpireTime,

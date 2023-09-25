@@ -88,9 +88,9 @@ model SplitMetric {
 }
 
 model Temp {
-  id         Int    @id @unique @default(autoincrement())
-  activityId Int?
+  id         Int     @id @unique @default(autoincrement())
+  activityId String? @unique @map(name: "activity_id")
   name       String?
   distance   Float?
-  movingTime Float?
+  movingTime Float?  @map(name: "moving_time")
 }
