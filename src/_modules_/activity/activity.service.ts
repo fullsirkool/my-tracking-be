@@ -47,15 +47,14 @@ export class ActivityService {
       access_token,
     );
 
-    const res = await this.createActivity(foundedActivity);
+    const res = await this.createActivity(owner.id, foundedActivity);
 
     return res;
   }
 
-  async createActivity(activityDto) {
+  async createActivity(userId, activityDto) {
     const {
       id,
-      athlete,
       name,
       distance,
       moving_time,
@@ -69,7 +68,6 @@ export class ActivityService {
       max_speed,
       splits_metric,
     } = activityDto;
-    const userId = athlete.id;
     let isValid = true;
     if (type !== 'Run') {
       isValid = false;
