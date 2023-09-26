@@ -6,17 +6,17 @@ import { ChangeTokenDto } from '../auth/auth.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const user = await this.prismaService.user.create({
+    const user = await this.prisma.user.create({
       data: createUserDto,
     });
     return user;
   }
 
   async findByStravaId(stravaId: number): Promise<User> {
-    const findUser = await this.prismaService.user.findUnique({
+    const findUser = await this.prisma.user.findUnique({
       where: { stravaId },
     });
     return findUser;
@@ -27,7 +27,7 @@ export class UserService {
     changeTokenDto: ChangeTokenDto,
   ): Promise<User> {
     const { accessToken, accessTokenExpireTime, refreshToken } = changeTokenDto;
-    const user = await this.prismaService.user.update({
+    const user = await this.prisma.user.update({
       where: { stravaId },
       data: { accessToken, accessTokenExpireTime, refreshToken },
     });

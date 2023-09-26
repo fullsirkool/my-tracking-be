@@ -1,17 +1,24 @@
 import { catchError, firstValueFrom } from 'rxjs';
 import { UserService } from './../user/user.service';
 import { PrismaService } from './../prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
-import { AuthDto, ChangeTokenDto } from './auth.dto';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { AuthDto, SignInAdminDto } from './auth.dto';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
+import { AdminService } from '../admin/admin.service';
+import * as bcrypt from 'bcrypt';
+import { Claims } from 'src/types/auth.types';
+import { JwtService } from '@nestjs/jwt';
+import { exclude } from 'src/utils/transform.utils';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prismaService: PrismaService,
+    private readonly prisma: PrismaService,
     private readonly userService: UserService,
     private readonly httpService: HttpService,
+    private readonly adminService: AdminService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signIn(code: string): Promise<AuthDto> {
@@ -112,5 +119,61 @@ export class AuthService {
     );
 
     return data;
+  }
+
+  async validateAdmin(signInAdminDto: SignInAdminDto) {
+    const { username, password } = signInAdminDto;
+    const admin = await this.adminService.findByUsername(username);
+    if (!admin) {
+      throw new UnauthorizedException('Admin not found!');
+    }
+
+    const isMatchPassword = await bcrypt.compare(password, admin.password);
+
+    if (!isMatchPassword) {
+      throw new UnauthorizedException('Wrong email or password!');
+    }
+
+    return admin;
+  }
+
+  async signInAdmin(claims: Claims) {
+    const [tokens, admin] = await Promise.all([
+      this.generateTokens(claims),
+      this.prisma.admin.findUnique({
+        where: { id: claims.id },
+      }),
+    ]);
+    return {
+      ...tokens,
+      admin: exclude(admin, ['password', 'refreshToken']),
+    };
+  }
+
+  private async generateTokens(claims: Claims) {
+    const accessToken = this.jwtService.sign(claims, {
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
+      secret: process.env.ACCESS_TOKEN_SECRET,
+    });
+
+    const refreshToken = this.jwtService.sign(
+      { sub: claims.id },
+      {
+        expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      },
+    );
+
+    await this.prisma.user.update({
+      where: { id: claims.id },
+      data: {
+        refreshToken,
+      },
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 }

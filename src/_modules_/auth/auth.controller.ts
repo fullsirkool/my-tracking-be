@@ -1,6 +1,21 @@
-import { Body, Controller, HttpStatus, Param, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  Param,
+  Post,
+  Res,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
+import { SignInAdminDto } from './auth.dto';
+import { LocalAuthGuard } from 'src/guards/local-auth.guard';
+import { Claims } from 'src/types/auth.types';
+import { User } from 'src/decorators/user.decorator';
+import { ApiBody } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -20,5 +35,12 @@ export class AuthController {
         .status(HttpStatus.UNAUTHORIZED)
         .send({ message: error.message });
     }
+  }
+
+  @UseGuards(LocalAuthGuard)
+  @ApiBody({ type: SignInAdminDto })
+  @Post('/admin/sign-in')
+  async login(@User() claims: Claims) {
+    return this.authService.signInAdmin(claims);
   }
 }

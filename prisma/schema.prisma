@@ -100,3 +100,18 @@ model SplitMetric {
   @@unique([activityId, split])
   @@map("split_metric")
 }
+
+model Admin {
+  id           Int         @id @unique @default(autoincrement())
+  username     String      @unique
+  password     String
+  status       AdminStatus @default(INACTIVE)
+  refreshToken String?     @map("refresh_token")
+
+  @@map("admin")
+}
+
+enum AdminStatus {
+  ACTIVE
+  INACTIVE
+}
