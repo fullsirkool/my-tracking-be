@@ -88,7 +88,6 @@ export class ActivityService {
     console.log('valid', isValid)
 
     const splitMetrics = splits_metric.map((item) => ({
-      activityId: `${id}`,
       split: item.split,
       distance: item.distance,
       elapsedTime: item.elapsed_time,
@@ -98,6 +97,8 @@ export class ActivityService {
       averageGradeAdjustedSpeed: item.average_grade_adjusted_speed,
       paceZone: item.pace_zone,
     }));
+
+    console.log('splitMetrics', splitMetrics)
 
     const activity = await this.prisma.activity.create({
       data: {
