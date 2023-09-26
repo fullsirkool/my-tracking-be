@@ -112,7 +112,9 @@ export class ActivityService {
         visibility: visibility,
         averageSpeed: average_speed,
         maxSpeed: max_speed,
-        splitMetrics,
+        splitMetrics: {
+          create: splitMetrics,
+        },
         isValid,
       },
     });
