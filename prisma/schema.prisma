@@ -58,6 +58,7 @@ model LeagueGroupUser {
 
 model Activity {
   id                 Int           @id @unique @default(autoincrement())
+  activityId         String        @map(name: "activity_id")
   userId             Int           @map(name: "user_id")
   name               String
   distance           Float
@@ -68,8 +69,8 @@ model Activity {
   startDate          DateTime      @default(now()) @map(name: "start_date")
   startDateLocal     DateTime      @default(now()) @map(name: "start_date_local")
   visibility         String
-  averageSpeed       Float           @map(name: "average_speed")
-  maxSpeed           Float           @map(name: "max_speed")
+  averageSpeed       Float         @map(name: "average_speed")
+  maxSpeed           Float         @map(name: "max_speed")
   isValid            Boolean       @default(true) @map(name: "is_valid")
   splitMetrics       SplitMetric[]
   user               User          @relation(fields: [userId], references: [id])

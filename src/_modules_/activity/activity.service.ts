@@ -85,8 +85,9 @@ export class ActivityService {
       isValid = false;
     }
 
+    console.log('valid', isValid)
+
     const splitMetrics = splits_metric.map((item) => ({
-      activityId: id,
       split: item.split,
       distance: item.distance,
       elapsedTime: item.elapsed_time,
@@ -99,7 +100,7 @@ export class ActivityService {
 
     const activity = await this.prisma.activity.create({
       data: {
-        id,
+        activityId: id,
         userId,
         name,
         distance,
