@@ -57,8 +57,7 @@ model LeagueGroupUser {
 }
 
 model Activity {
-  id                 Int           @id @unique @default(autoincrement())
-  activityId         String        @map(name: "activity_id")
+  id                 String        @id @unique
   userId             Int           @map(name: "user_id")
   name               String
   distance           Float
@@ -77,7 +76,7 @@ model Activity {
 }
 
 model SplitMetric {
-  activityId                Int      @map(name: "activity_id")
+  activityId                String   @map(name: "activity_id")
   split                     Int
   distance                  Float
   elapsedTime               Int      @map(name: "elapsed_time")

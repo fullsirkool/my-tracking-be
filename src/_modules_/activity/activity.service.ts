@@ -88,6 +88,7 @@ export class ActivityService {
     console.log('valid', isValid)
 
     const splitMetrics = splits_metric.map((item) => ({
+      activityId: id,
       split: item.split,
       distance: item.distance,
       elapsedTime: item.elapsed_time,
@@ -100,7 +101,7 @@ export class ActivityService {
 
     const activity = await this.prisma.activity.create({
       data: {
-        activityId: id,
+        id,
         userId,
         name,
         distance,
@@ -143,9 +144,9 @@ export class ActivityService {
   }
 
   async findOneByActivityId(id: string) {
-    return await this.prisma.temp.findUnique({
+    return await this.prisma.activity.findUnique({
       where: {
-        activityId: `${id}`,
+        id: `${id}`,
       },
     });
   }
