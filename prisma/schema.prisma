@@ -43,7 +43,7 @@ model LeagueGroup {
   id              Int               @id @unique @default(autoincrement())
   groupName       String            @map(name: "group_name")
   leagueId        Int               @map(name: "league_id")
-  league          League            @relation(fields: [leagueId], references: [id])
+  league          League            @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   leagueGroupUser LeagueGroupUser[]
 }
 
@@ -52,8 +52,8 @@ model LeagueGroupUser {
   userId        Int         @map(name: "user_id")
   leagueGroupId Int         @map(name: "league_group_id")
   total         Float       @default(0)
-  user          User        @relation(fields: [userId], references: [id])
-  leagueGroup   LeagueGroup @relation(fields: [leagueGroupId], references: [id])
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leagueGroup   LeagueGroup @relation(fields: [leagueGroupId], references: [id], onDelete: Cascade)
 }
 
 model Activity {
@@ -72,7 +72,7 @@ model Activity {
   maxSpeed           Float         @map(name: "max_speed")
   isValid            Boolean       @default(true) @map(name: "is_valid")
   splitMetrics       SplitMetric[]
-  user               User          @relation(fields: [userId], references: [id])
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SplitMetric {
@@ -85,7 +85,7 @@ model SplitMetric {
   averageSpeed              Float    @map(name: "average_speed")
   averageGradeAdjustedSpeed Float    @map(name: "average_grade_adjusted_speed")
   paceZone                  Float    @map(name: "pace_zone")
-  activity                  Activity @relation(fields: [activityId], references: [id])
+  activity                  Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
   @@unique([activityId, split])
 }
