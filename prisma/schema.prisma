@@ -4,7 +4,7 @@
 generator client {
   provider = "prisma-client-js"
 }
-
+ 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -28,6 +28,7 @@ model User {
   refreshToken          String?           @map(name: "refresh_token")
   leagueGroupUsers      LeagueGroupUser[]
   activities            Activity[]
+  @@map("user")
 }
 
 model League {
@@ -37,14 +38,16 @@ model League {
   endAt        DateTime      @default(now()) @map(name: "end_at")
   total        Float
   leagueGroups LeagueGroup[]
+  @@map("league")
 }
 
 model LeagueGroup {
   id              Int               @id @unique @default(autoincrement())
   groupName       String            @map(name: "group_name")
   leagueId        Int               @map(name: "league_id")
-  league          League            @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  league          League            @relation(fields: [leagueId], references: [id])
   leagueGroupUser LeagueGroupUser[]
+  @@map("league_group")
 }
 
 model LeagueGroupUser {
@@ -52,12 +55,13 @@ model LeagueGroupUser {
   userId        Int         @map(name: "user_id")
   leagueGroupId Int         @map(name: "league_group_id")
   total         Float       @default(0)
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leagueGroup   LeagueGroup @relation(fields: [leagueGroupId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id])
+  leagueGroup   LeagueGroup @relation(fields: [leagueGroupId], references: [id])
+  @@map("league_group_user")
 }
 
 model Activity {
-  id                 String        @id @unique
+  id                 Int           @id @unique @default(autoincrement())
   userId             Int           @map(name: "user_id")
   name               String
   distance           Float
@@ -68,15 +72,16 @@ model Activity {
   startDate          DateTime      @default(now()) @map(name: "start_date")
   startDateLocal     DateTime      @default(now()) @map(name: "start_date_local")
   visibility         String
-  averageSpeed       Float         @map(name: "average_speed")
-  maxSpeed           Float         @map(name: "max_speed")
+  averageSpeed       Int           @map(name: "average_speed")
+  maxSpeed           Int           @map(name: "max_speed")
   isValid            Boolean       @default(true) @map(name: "is_valid")
   splitMetrics       SplitMetric[]
-  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User          @relation(fields: [userId], references: [id])
+  @@map("activity")
 }
 
 model SplitMetric {
-  activityId                String   @map(name: "activity_id")
+  activityId                Int      @map(name: "activity_id")
   split                     Int
   distance                  Float
   elapsedTime               Int      @map(name: "elapsed_time")
@@ -85,15 +90,8 @@ model SplitMetric {
   averageSpeed              Float    @map(name: "average_speed")
   averageGradeAdjustedSpeed Float    @map(name: "average_grade_adjusted_speed")
   paceZone                  Float    @map(name: "pace_zone")
-  activity                  Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  activity                  Activity @relation(fields: [activityId], references: [id])
 
   @@unique([activityId, split])
-}
-
-model Temp {
-  id         Int     @id @unique @default(autoincrement())
-  activityId String? @unique @map(name: "activity_id")
-  name       String?
-  distance   Float?
-  movingTime Float?  @map(name: "moving_time")
+  @@map("split_metric")
 }
