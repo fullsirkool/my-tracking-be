@@ -1,14 +1,22 @@
 import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
 import { ActivityService } from './activity.service';
 import { response } from 'express';
+import { ManualCreateActivityDto } from './activity.dto';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('activity')
+@ApiTags('activity')
 export class ActivityController {
   constructor(private readonly activityService: ActivityService) {}
 
   @Post('/event')
   createActivity(@Body() data) {
     return this.activityService.getWebhookResponse(data);
+  }
+
+  @Post()
+  async manualCreate(@Body() manualCreateActivityDto: ManualCreateActivityDto) {
+    return await this.activityService.manualCreateActivity(manualCreateActivityDto);
   }
 
   @Get('/event')

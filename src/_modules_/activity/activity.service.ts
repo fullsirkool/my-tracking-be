@@ -1,9 +1,10 @@
 import { catchError, firstValueFrom } from 'rxjs';
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { AuthService } from '../auth/auth.service';
+import { ManualCreateActivityDto } from './activity.dto';
 
 @Injectable()
 export class ActivityService {
@@ -12,6 +13,34 @@ export class ActivityService {
     private readonly httpService: HttpService,
     private readonly authService: AuthService,
   ) {}
+
+  async findStravaActivity(id: number, token: string) {
+    const activityUrl = `${process.env.STRAVA_BASE_URL}/activities/${id}`;
+    const { data } = await firstValueFrom(
+      this.httpService
+        .get(activityUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.error(error);
+            throw 'An error happened!';
+          }),
+        ),
+    );
+
+    return data;
+  }
+
+  async findOneByActivityId(id: string) {
+    return await this.prisma.activity.findUnique({
+      where: {
+        id: `${id}`,
+      },
+    });
+  }
 
   async getWebhookResponse(createActivityDto) {
     const { object_type, object_id, owner_id, aspect_type } = createActivityDto;
@@ -98,8 +127,6 @@ export class ActivityService {
       paceZone: item.pace_zone,
     }));
 
-    console.log('splitMetrics', splitMetrics)
-
     const activity = await this.prisma.activity.create({
       data: {
         id: `${id}`,
@@ -124,31 +151,34 @@ export class ActivityService {
     return activity;
   }
 
-  async findStravaActivity(id: number, token: string) {
-    const activityUrl = `${process.env.STRAVA_BASE_URL}/activities/${id}`;
-    const { data } = await firstValueFrom(
-      this.httpService
-        .get(activityUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .pipe(
-          catchError((error: AxiosError) => {
-            console.error(error);
-            throw 'An error happened!';
-          }),
-        ),
-    );
+  
 
-    return data;
-  }
-
-  async findOneByActivityId(id: string) {
-    return await this.prisma.activity.findUnique({
+  async manualCreateActivity(manualCreateActivityDto: ManualCreateActivityDto) {
+    const {stravaId, activityId} = manualCreateActivityDto
+    
+    const owner = await this.prisma.user.findUnique({
       where: {
-        id: `${id}`,
+        stravaId: stravaId,
       },
     });
+
+    if (!owner) {
+      throw new ForbiddenException('Not Found Owner!')
+    }
+
+    const {refreshToken} = owner
+
+    const tokenRes = await this.authService.resetToken(refreshToken);
+
+    const { access_token } = tokenRes;
+
+    const foundedActivity = await this.findStravaActivity(
+      activityId,
+      access_token,
+    );
+
+    const res = await this.createActivity(owner.id, foundedActivity);
+
+    return res;
   }
 }

@@ -15,9 +15,10 @@ import { SignInAdminDto } from './auth.dto';
 import { LocalAuthGuard } from 'src/guards/local-auth.guard';
 import { Claims } from 'src/types/auth.types';
 import { User } from 'src/decorators/user.decorator';
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 
 @Controller('auth')
+@ApiTags('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
