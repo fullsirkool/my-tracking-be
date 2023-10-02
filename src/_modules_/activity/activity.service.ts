@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { AuthService } from '../auth/auth.service';
-import { ManualCreateActivityDto } from './activity.dto';
+import { ManualCreateActivityDto, FindMonthlyActivityDto } from './activity.dto';
 
 @Injectable()
 export class ActivityService {
@@ -114,7 +114,7 @@ export class ActivityService {
       isValid = false;
     }
 
-    console.log('valid', isValid)
+    console.log('valid', isValid);
 
     const splitMetrics = splits_metric.map((item) => ({
       split: item.split,
@@ -180,5 +180,22 @@ export class ActivityService {
     const res = await this.createActivity(owner.id, foundedActivity);
 
     return res;
+  }
+
+  async findMonthlyActivity(userId: number, findMonthlyActivityDto: FindMonthlyActivityDto) {
+    const { date } = findMonthlyActivityDto;
+    console.log('findMonthlyActivity', date)
+    const requestDate = new Date(date)
+    const start = new Date(requestDate.getFullYear(), requestDate.getMonth(), 1);
+    const end = new Date(requestDate.getFullYear(), requestDate.getMonth() + 1, 0);
+    return await this.prisma.activity.findMany({
+      where: {
+        userId,
+        startDate: {
+          gte: start,
+          lte: end,
+        },
+      },
+    });
   }
 }

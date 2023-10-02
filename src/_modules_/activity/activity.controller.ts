@@ -1,8 +1,9 @@
-import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query, UseInterceptors } from '@nestjs/common';
 import { ActivityService } from './activity.service';
 import { response } from 'express';
-import { ManualCreateActivityDto } from './activity.dto';
+import { ManualCreateActivityDto, FindMonthlyActivityDto } from './activity.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { ActivityTransformInterceptor } from 'src/interceptors/activity.transform';
 
 @Controller('activity')
 @ApiTags('activity')
@@ -36,5 +37,11 @@ export class ActivityController {
         response.sendStatus(403);
       }
     }
+  }
+
+  @Get('/monthly')
+  @UseInterceptors(ActivityTransformInterceptor)
+  async findMonthlyActivity(@Query() findMonthlyActivityDto: FindMonthlyActivityDto) {
+    return await this.activityService.findMonthlyActivity(1, findMonthlyActivityDto)
   }
 }
