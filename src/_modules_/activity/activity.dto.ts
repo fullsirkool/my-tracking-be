@@ -2,6 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 import { Activity } from '@prisma/client';
 import { IsDateString } from 'class-validator';
+
+export type ShortActivity = Pick<
+  Activity,
+  'id' | 'distance' | 'startDate' | 'type' | 'isValid'
+>;
 export class ManualCreateActivityDto {
   @ApiProperty({
     required: true,
@@ -25,8 +30,3 @@ export class FindMonthlyActivityDto {
   @IsDateString()
   date: Date = new Date();
 }
-
-export type ShortActivity = Pick<
-  Activity,
-  'id' | 'distance' | 'startDate' | 'type' | 'isValid'
->;

@@ -1,7 +1,18 @@
-import { Controller, Post, Body, Get, Param, Query, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ActivityService } from './activity.service';
 import { response } from 'express';
-import { ManualCreateActivityDto, FindMonthlyActivityDto } from './activity.dto';
+import {
+  ManualCreateActivityDto,
+  FindMonthlyActivityDto,
+} from './activity.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { ActivityTransformInterceptor } from 'src/interceptors/activity.transform';
 
@@ -17,7 +28,9 @@ export class ActivityController {
 
   @Post()
   async manualCreate(@Body() manualCreateActivityDto: ManualCreateActivityDto) {
-    return await this.activityService.manualCreateActivity(manualCreateActivityDto);
+    return await this.activityService.manualCreateActivity(
+      manualCreateActivityDto,
+    );
   }
 
   @Get('/event')
@@ -25,7 +38,7 @@ export class ActivityController {
     const mode = params['hub.mode'];
     const hub_challenge = params['hub.challenge'];
     const verify_token = params['hub.verify_token'];
-    console.log('get event', mode, hub_challenge, verify_token)
+    console.log('get event', mode, hub_challenge, verify_token);
     if (mode && verify_token) {
       // Verifies that the mode and token sent are valid
       if (mode === 'subscribe' && verify_token === process.env.VERIFY_TOKEN) {
@@ -41,7 +54,12 @@ export class ActivityController {
 
   @Get('/monthly')
   @UseInterceptors(ActivityTransformInterceptor)
-  async findMonthlyActivity(@Query() findMonthlyActivityDto: FindMonthlyActivityDto) {
-    return await this.activityService.findMonthlyActivity(1, findMonthlyActivityDto)
+  async findMonthlyActivity(
+    @Query() findMonthlyActivityDto: FindMonthlyActivityDto,
+  ) {
+    return await this.activityService.findMonthlyActivity(
+      1,
+      findMonthlyActivityDto,
+    );
   }
 }

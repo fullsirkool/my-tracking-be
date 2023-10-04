@@ -1,10 +1,13 @@
 import { catchError, firstValueFrom } from 'rxjs';
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { AuthService } from '../auth/auth.service';
-import { ManualCreateActivityDto, FindMonthlyActivityDto } from './activity.dto';
+import {
+  ManualCreateActivityDto,
+  FindMonthlyActivityDto,
+} from './activity.dto';
 
 @Injectable()
 export class ActivityService {
@@ -38,6 +41,33 @@ export class ActivityService {
     return await this.prisma.activity.findUnique({
       where: {
         id: `${id}`,
+      },
+    });
+  }
+
+  async findMonthlyActivity(
+    userId: number,
+    findMonthlyActivityDto: FindMonthlyActivityDto,
+  ) {
+    const { date } = findMonthlyActivityDto;
+    const requestDate = new Date(date);
+    const start = new Date(
+      requestDate.getFullYear(),
+      requestDate.getMonth(),
+      1,
+    );
+    const end = new Date(
+      requestDate.getFullYear(),
+      requestDate.getMonth() + 1,
+      0,
+    );
+    return await this.prisma.activity.findMany({
+      where: {
+        userId,
+        startDate: {
+          gte: start,
+          lte: end,
+        },
       },
     });
   }
@@ -97,13 +127,23 @@ export class ActivityService {
       max_speed,
       splits_metric,
     } = activityDto;
-    let isValid = true;
-    if (type !== 'Run') {
+
+    const foundedActivity = await this.findOneByActivityId(id)
+
+    if (foundedActivity) {
+      throw new ConflictException("Activity already exists!")
+    }
+
+    let isValid = type === 'Run';
+    if (distance < 1000) {
       isValid = false;
     }
 
     const invalidSplitMetric = splits_metric.find((item) => {
       const { distance, moving_time } = item;
+      if (distance < 100) {
+        return false;
+      }
       const pace = moving_time / (distance / 1000) / 60;
       if (pace > 15 || pace < 4) {
         return true;
@@ -151,11 +191,9 @@ export class ActivityService {
     return activity;
   }
 
-  
-
   async manualCreateActivity(manualCreateActivityDto: ManualCreateActivityDto) {
-    const {stravaId, activityId} = manualCreateActivityDto
-    
+    const { stravaId, activityId } = manualCreateActivityDto;
+
     const owner = await this.prisma.user.findUnique({
       where: {
         stravaId: stravaId,
@@ -163,10 +201,10 @@ export class ActivityService {
     });
 
     if (!owner) {
-      throw new ForbiddenException('Not Found Owner!')
+      throw new ForbiddenException('Not Found Owner!');
     }
 
-    const {refreshToken} = owner
+    const { refreshToken } = owner;
 
     const tokenRes = await this.authService.resetToken(refreshToken);
 
@@ -180,22 +218,5 @@ export class ActivityService {
     const res = await this.createActivity(owner.id, foundedActivity);
 
     return res;
-  }
-
-  async findMonthlyActivity(userId: number, findMonthlyActivityDto: FindMonthlyActivityDto) {
-    const { date } = findMonthlyActivityDto;
-    console.log('findMonthlyActivity', date)
-    const requestDate = new Date(date)
-    const start = new Date(requestDate.getFullYear(), requestDate.getMonth(), 1);
-    const end = new Date(requestDate.getFullYear(), requestDate.getMonth() + 1, 0);
-    return await this.prisma.activity.findMany({
-      where: {
-        userId,
-        startDate: {
-          gte: start,
-          lte: end,
-        },
-      },
-    });
   }
 }
