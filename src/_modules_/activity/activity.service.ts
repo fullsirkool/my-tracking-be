@@ -69,6 +69,9 @@ export class ActivityService {
           lte: end,
         },
       },
+      orderBy: {
+        startDate: 'asc'
+      }
     });
   }
 
