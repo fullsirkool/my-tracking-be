@@ -58,7 +58,7 @@ export class ActivityService {
 
     const owner = await this.prisma.user.findUnique({
       where: {
-        stravaId: stravaId,
+        stravaId: +stravaId,
       },
     });
 
