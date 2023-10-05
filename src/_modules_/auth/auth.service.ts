@@ -82,12 +82,14 @@ export class AuthService {
       };
       const user = await this.userService.changeToken(id, changeTokenDto);
       return {
+        stravaId: id,
         token: user.accessToken,
         expireTime: user.accessTokenExpireTime,
       };
     } else {
       const user = await this.userService.create(sendUser);
       return {
+        stravaId: id,
         token: user.accessToken,
         expireTime: user.accessTokenExpireTime,
       };
