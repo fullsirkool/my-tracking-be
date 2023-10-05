@@ -1,5 +1,9 @@
 import { catchError, firstValueFrom } from 'rxjs';
-import { ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
@@ -45,11 +49,21 @@ export class ActivityService {
     });
   }
 
-  async findMonthlyActivity(
-    userId: number,
-    findMonthlyActivityDto: FindMonthlyActivityDto,
-  ) {
-    const { date } = findMonthlyActivityDto;
+  async findMonthlyActivity(findMonthlyActivityDto: FindMonthlyActivityDto) {
+    const { date, stravaId } = findMonthlyActivityDto;
+
+    const owner = await this.prisma.user.findUnique({
+      where: {
+        stravaId: stravaId,
+      },
+    });
+
+    if (!owner) {
+      throw new ForbiddenException('Not Found Owner!');
+    }
+
+    const { id } = owner;
+
     const requestDate = new Date(date);
     const start = new Date(
       requestDate.getFullYear(),
@@ -63,15 +77,15 @@ export class ActivityService {
     );
     return await this.prisma.activity.findMany({
       where: {
-        userId,
+        userId: id,
         startDate: {
           gte: start,
           lte: end,
         },
       },
       orderBy: {
-        startDate: 'asc'
-      }
+        startDate: 'asc',
+      },
     });
   }
 
@@ -131,10 +145,10 @@ export class ActivityService {
       splits_metric,
     } = activityDto;
 
-    const foundedActivity = await this.findOneByActivityId(id)
+    const foundedActivity = await this.findOneByActivityId(id);
 
     if (foundedActivity) {
-      throw new ConflictException("Activity already exists!")
+      throw new ConflictException('Activity already exists!');
     }
 
     let isValid = type === 'Run';

@@ -29,4 +29,8 @@ export class FindMonthlyActivityDto {
   @ApiProperty()
   @IsDateString()
   date: Date = new Date();
+
+  @ApiProperty()
+  @IsNumber()
+  stravaId: number;
 }

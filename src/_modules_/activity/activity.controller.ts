@@ -58,7 +58,6 @@ export class ActivityController {
     @Query() findMonthlyActivityDto: FindMonthlyActivityDto,
   ) {
     return await this.activityService.findMonthlyActivity(
-      1,
       findMonthlyActivityDto,
     );
   }
