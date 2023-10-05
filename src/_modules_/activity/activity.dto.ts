@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 import { Activity } from '@prisma/client';
 import { IsDateString } from 'class-validator';
+import { IsInterger } from 'src/decorators/validator.decorator';
 
 export type ShortActivity = Pick<
   Activity,
@@ -31,6 +32,6 @@ export class FindMonthlyActivityDto {
   date: Date = new Date();
 
   @ApiProperty()
-  @IsNumber()
+  @IsInterger
   stravaId: number;
 }

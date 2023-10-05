@@ -52,6 +52,10 @@ export class ActivityService {
   async findMonthlyActivity(findMonthlyActivityDto: FindMonthlyActivityDto) {
     const { date, stravaId } = findMonthlyActivityDto;
 
+    if (!stravaId) {
+      throw new ForbiddenException('Strava ID Required!');
+    }
+
     const owner = await this.prisma.user.findUnique({
       where: {
         stravaId: stravaId,
