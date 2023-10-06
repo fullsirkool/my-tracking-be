@@ -26,10 +26,10 @@ export class UserService {
     stravaId: number,
     changeTokenDto: ChangeTokenDto,
   ): Promise<User> {
-    const { accessToken, accessTokenExpireTime, refreshToken } = changeTokenDto;
+    const { stravaRefreshToken } = changeTokenDto;
     const user = await this.prisma.user.update({
       where: { stravaId },
-      data: { accessToken, accessTokenExpireTime, refreshToken },
+      data: { stravaRefreshToken },
     });
     return user;
   }

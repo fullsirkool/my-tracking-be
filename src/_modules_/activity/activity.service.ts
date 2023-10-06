@@ -116,9 +116,9 @@ export class ActivityService {
       return;
     }
 
-    const { refreshToken } = owner;
+    const { stravaRefreshToken } = owner;
 
-    const tokenRes = await this.authService.resetToken(refreshToken);
+    const tokenRes = await this.authService.resetToken(stravaRefreshToken);
 
     const { access_token } = tokenRes;
 
@@ -225,9 +225,9 @@ export class ActivityService {
       throw new ForbiddenException('Not Found Owner!');
     }
 
-    const { refreshToken } = owner;
+    const { stravaRefreshToken } = owner;
 
-    const tokenRes = await this.authService.resetToken(refreshToken);
+    const tokenRes = await this.authService.resetToken(stravaRefreshToken);
 
     const { access_token } = tokenRes;
 

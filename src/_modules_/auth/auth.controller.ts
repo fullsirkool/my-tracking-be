@@ -6,16 +6,17 @@ import {
   Post,
   Res,
   UseGuards,
-  Request,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
-import { AuthGuard } from '@nestjs/passport';
 import { SignInAdminDto } from './auth.dto';
 import { LocalAuthGuard } from 'src/guards/local-auth.guard';
-import { Claims } from 'src/types/auth.types';
-import { User } from 'src/decorators/user.decorator';
+import { Claims, UserClaims } from 'src/types/auth.types';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { Admin } from 'src/decorators/admin.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { User } from 'src/decorators/user.decorator';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -41,7 +42,14 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @ApiBody({ type: SignInAdminDto })
   @Post('/admin/sign-in')
-  async login(@User() claims: Claims) {
+  async login(@Admin() claims: Claims) {
     return this.authService.signInAdmin(claims);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/self')
+  async getSelfInfo(@User() claims: UserClaims) {
+    console.log('claims', claims)
+    return this.authService.getSelfInfo(claims);
   }
 }

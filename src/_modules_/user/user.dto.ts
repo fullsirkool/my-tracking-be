@@ -9,8 +9,5 @@ export class CreateUserDto {
   sex: string;
   profileMedium: string;
   profile: string;
-  tokenType: string;
-  accessToken: string;
-  accessTokenExpireTime: number;
-  refreshToken: string;
+  stravaRefreshToken: string;
 }

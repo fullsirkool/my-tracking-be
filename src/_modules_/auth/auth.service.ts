@@ -7,7 +7,7 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { AdminService } from '../admin/admin.service';
 import * as bcrypt from 'bcrypt';
-import { Claims } from 'src/types/auth.types';
+import { Claims, UserClaims } from 'src/types/auth.types';
 import { JwtService } from '@nestjs/jwt';
 import { exclude } from 'src/utils/transform.utils';
 
@@ -44,7 +44,7 @@ export class AuthService {
           }),
         ),
     );
-    const { token_type, access_token, expires_at, refresh_token } = data;
+    const { refresh_token } = data;
     const {
       id,
       firstname,
@@ -68,35 +68,34 @@ export class AuthService {
       sex,
       profileMedium: profile_medium,
       profile,
-      tokenType: token_type,
-      accessToken: access_token,
-      accessTokenExpireTime: expires_at,
-      refreshToken: refresh_token,
+      stravaRefreshToken: refresh_token,
     };
     const findUser = await this.userService.findByStravaId(id);
     if (findUser) {
       const changeTokenDto = {
-        accessToken: access_token,
-        accessTokenExpireTime: expires_at,
-        refreshToken: refresh_token,
+        stravaRefreshToken: refresh_token,
       };
       const user = await this.userService.changeToken(id, changeTokenDto);
+      const { accessToken, refreshToken } = await this.generateTokens(user);
       return {
-        stravaId: id,
-        token: user.accessToken,
-        expireTime: user.accessTokenExpireTime,
-      };
-    } else {
-      const user = await this.userService.create(sendUser);
-      return {
-        stravaId: id,
-        token: user.accessToken,
-        expireTime: user.accessTokenExpireTime,
+        user,
+        accessToken,
+        refreshToken,
+        expireTime: +process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
       };
     }
+    
+    const user = await this.userService.create(sendUser);
+    const { accessToken, refreshToken } = await this.generateTokens(user);
+    return {
+      user,
+      accessToken,
+      refreshToken,
+      expireTime: +process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
+    };
   }
 
-  async resetToken(refreshToken: string) {
+  async resetToken(stravaRefreshToken: string) {
     const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
     const { data } = await firstValueFrom(
       this.httpService
@@ -108,7 +107,7 @@ export class AuthService {
               client_id: process.env.STRAVA_CLIENT_ID,
               client_secret: process.env.STRAVA_CLIENT_SECRET,
               grant_type: `refresh_token`,
-              refresh_token: refreshToken,
+              refresh_token: stravaRefreshToken,
             },
           },
         )
@@ -141,7 +140,7 @@ export class AuthService {
 
   async signInAdmin(claims: Claims) {
     const [tokens, admin] = await Promise.all([
-      this.generateTokens(claims),
+      this.generateAdminTokens(claims),
       this.prisma.admin.findUnique({
         where: { id: claims.id },
       }),
@@ -152,7 +151,34 @@ export class AuthService {
     };
   }
 
-  private async generateTokens(claims: Claims) {
+  private async generateAdminTokens(claims: Claims) {
+    const accessToken = this.jwtService.sign(claims, {
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
+      secret: process.env.ACCESS_TOKEN_SECRET,
+    });
+
+    const refreshToken = this.jwtService.sign(
+      { sub: claims.id },
+      {
+        expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      },
+    );
+
+    await this.prisma.admin.update({
+      where: { id: claims.id },
+      data: {
+        refreshToken,
+      },
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  private async generateTokens(claims: UserClaims) {
     const accessToken = this.jwtService.sign(claims, {
       expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
       secret: process.env.ACCESS_TOKEN_SECRET,
@@ -177,5 +203,9 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async getSelfInfo(claims: UserClaims) {
+    return {}
   }
 }

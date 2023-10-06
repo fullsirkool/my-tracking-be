@@ -1,16 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsStrongPassword } from 'class-validator';
+import { UserClaims } from 'src/types/auth.types';
 
 export class AuthDto {
-  token: string;
   expireTime: number;
-  stravaId: number;
+  accessToken: string;
+  refreshToken: string;
+  user: UserClaims;
 }
 
 export class ChangeTokenDto {
-  accessToken: string;
-  accessTokenExpireTime: number;
-  refreshToken: string;
+  stravaRefreshToken: string;
 }
 
 export class SignInAdminDto {
