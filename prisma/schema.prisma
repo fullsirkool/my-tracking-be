@@ -78,26 +78,9 @@ model Activity {
   averageSpeed       Float         @map(name: "average_speed")
   maxSpeed           Float         @map(name: "max_speed")
   isValid            Boolean       @default(true) @map(name: "is_valid")
-  splitMetrics       SplitMetric[]
   user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("activity")
-}
-
-model SplitMetric {
-  activityId                String   @map(name: "activity_id")
-  split                     Int
-  distance                  Float
-  elapsedTime               Int      @map(name: "elapsed_time")
-  elevationDifference       Float    @map(name: "elevation_difference")
-  movingTime                Float    @map(name: "moving_time")
-  averageSpeed              Float    @map(name: "average_speed")
-  averageGradeAdjustedSpeed Float    @map(name: "average_grade_adjusted_speed")
-  paceZone                  Float    @map(name: "pace_zone")
-  activity                  Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-
-  @@unique([activityId, split])
-  @@map("split_metric")
 }
 
 model Admin {

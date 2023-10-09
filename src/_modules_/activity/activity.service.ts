@@ -2,7 +2,9 @@ import { catchError, firstValueFrom } from 'rxjs';
 import {
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
@@ -11,6 +13,7 @@ import { AuthService } from '../auth/auth.service';
 import {
   ManualCreateActivityDto,
   FindMonthlyActivityDto,
+  CreateManyActivitiesDto,
 } from './activity.dto';
 
 @Injectable()
@@ -18,6 +21,7 @@ export class ActivityService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly httpService: HttpService,
+    @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
   ) {}
 
@@ -177,17 +181,6 @@ export class ActivityService {
 
     console.log('valid', isValid);
 
-    const splitMetrics = splits_metric.map((item) => ({
-      split: item.split,
-      distance: item.distance,
-      elapsedTime: item.elapsed_time,
-      elevationDifference: item.elevation_difference,
-      movingTime: item.moving_time,
-      averageSpeed: item.average_speed,
-      averageGradeAdjustedSpeed: item.average_grade_adjusted_speed,
-      paceZone: item.pace_zone,
-    }));
-
     const activity = await this.prisma.activity.create({
       data: {
         id: `${id}`,
@@ -203,13 +196,73 @@ export class ActivityService {
         visibility: visibility,
         averageSpeed: average_speed,
         maxSpeed: max_speed,
-        splitMetrics: {
-          create: splitMetrics,
-        },
         isValid,
       },
     });
     return activity;
+  }
+
+  async createMany(createManyDto: CreateManyActivitiesDto) {
+    const { user, access_token } = createManyDto;
+    const currentDate = new Date();
+
+    // Subtract 30 days
+    currentDate.setDate(currentDate.getDate() - 30);
+    const after = Math.ceil(currentDate.getTime() / 1000);
+    const activityUrl = `${process.env.STRAVA_BASE_URL}/athlete/activities`;
+    const { data } = await firstValueFrom(
+      this.httpService
+        .get(activityUrl, {
+          params: {
+            access_token,
+            after,
+          },
+        })
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.error(error);
+            throw 'An error happened!';
+          }),
+        ),
+    );
+
+    const payload = data.map((item) => {
+      const {
+        id,
+        name,
+        distance,
+        moving_time,
+        elapsed_time,
+        total_elevation_gain,
+        start_date,
+        start_date_local,
+        type,
+        visibility,
+        average_speed,
+        max_speed,
+      } = item;
+      return {
+        id: `${id}`,
+        userId: user.id,
+        name,
+        distance,
+        movingTime: moving_time,
+        elapsedTime: elapsed_time,
+        totalElevationGain: total_elevation_gain,
+        type,
+        startDate: start_date,
+        startDateLocal: start_date_local,
+        visibility: visibility,
+        averageSpeed: average_speed,
+        maxSpeed: max_speed,
+        isValid: true,
+      };
+    });
+    console.log('payload', payload);
+    const activities = await this.prisma.activity.createMany({
+      data: payload,
+    });
+    return activities;
   }
 
   async manualCreateActivity(manualCreateActivityDto: ManualCreateActivityDto) {

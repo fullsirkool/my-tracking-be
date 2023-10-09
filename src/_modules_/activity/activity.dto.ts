@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
-import { Activity } from '@prisma/client';
+import { Activity, User } from '@prisma/client';
 import { IsDateString } from 'class-validator';
 import { IsInterger } from 'src/decorators/validator.decorator';
 
@@ -34,4 +34,9 @@ export class FindMonthlyActivityDto {
   @ApiProperty()
   @IsInterger
   stravaId: number;
+}
+
+export class CreateManyActivitiesDto {
+  access_token: string;
+  user: User;
 }

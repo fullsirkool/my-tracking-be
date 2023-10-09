@@ -1,7 +1,7 @@
 import { catchError, firstValueFrom } from 'rxjs';
 import { UserService } from './../user/user.service';
 import { PrismaService } from './../prisma/prisma.service';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { AuthDto, SignInAdminDto } from './auth.dto';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { Claims, UserClaims } from 'src/types/auth.types';
 import { JwtService } from '@nestjs/jwt';
 import { exclude } from 'src/utils/transform.utils';
+import { ActivityService } from '../activity/activity.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,8 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly httpService: HttpService,
     private readonly adminService: AdminService,
+    @Inject(forwardRef(() => ActivityService))
+    private readonly activityService: ActivityService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -44,7 +47,7 @@ export class AuthService {
           }),
         ),
     );
-    const { refresh_token } = data;
+    const { refresh_token, access_token } = data;
     const {
       id,
       firstname,
@@ -84,8 +87,12 @@ export class AuthService {
         expireTime: +process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
       };
     }
-    
+
     const user = await this.userService.create(sendUser);
+    const activities = await this.activityService.createMany({
+      user,
+      access_token,
+    });
     const { accessToken, refreshToken } = await this.generateTokens(user);
     return {
       user,
@@ -206,6 +213,6 @@ export class AuthService {
   }
 
   async getSelfInfo(claims: UserClaims) {
-    return {}
+    return {};
   }
 }
