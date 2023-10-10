@@ -98,7 +98,7 @@ export class ActivityService {
     const res = await this.prisma.$queryRaw`
       SELECT DATE_TRUNC('day', start_date) as startDate, SUM(distance) as distance
       FROM activity
-      WHERE start_date >= ${start} AND start_date <= ${end}
+      WHERE start_date >= ${start} AND start_date <= ${end} AND user_id = ${id}
       GROUP BY DATE_TRUNC('day', start_date)
     `;
     return res;
