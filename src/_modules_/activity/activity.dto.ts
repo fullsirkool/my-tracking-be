@@ -6,7 +6,7 @@ import { IsInterger } from 'src/decorators/validator.decorator';
 
 export type ShortActivity = Pick<
   Activity,
-  'id' | 'distance' | 'startDate' | 'type' | 'isValid'
+  'id' | 'distance' | 'startDate' | 'isValid'
 >;
 export class ManualCreateActivityDto {
   @ApiProperty({

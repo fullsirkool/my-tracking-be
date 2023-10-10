@@ -53,7 +53,7 @@ export class ActivityController {
   }
 
   @Get('/monthly')
-  @UseInterceptors(ActivityTransformInterceptor)
+  // @UseInterceptors(ActivityTransformInterceptor)
   async findMonthlyActivity(
     @Query() findMonthlyActivityDto: FindMonthlyActivityDto,
   ) {

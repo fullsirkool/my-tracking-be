@@ -19,12 +19,9 @@ export class ActivityTransformInterceptor implements NestInterceptor {
           return [];
         }
         return data.map((activity: Activity) => ({
-          id: activity.id,
           distance: activity.distance,
           startDate: activity.startDate,
-          type: activity.type,
-          isValid: activity.isValid,
-        })) as ShortActivity[];
+        })) as any[];
       }),
     );
   }

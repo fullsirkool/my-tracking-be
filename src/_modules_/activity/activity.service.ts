@@ -83,18 +83,25 @@ export class ActivityService {
       requestDate.getMonth() + 1,
       0,
     );
-    return await this.prisma.activity.findMany({
-      where: {
-        userId: id,
-        startDate: {
-          gte: start,
-          lte: end,
-        },
-      },
-      orderBy: {
-        startDate: 'asc',
-      },
-    });
+    // const activities = await this.prisma.activity.findMany({
+    //   where: {
+    //     userId: id,
+    //     startDate: {
+    //       gte: start,
+    //       lte: end,
+    //     },
+    //   },
+    //   orderBy: {
+    //     startDate: 'asc',
+    //   },
+    // });
+    const res = await this.prisma.$queryRaw`
+      SELECT DATE_TRUNC('day', start_date) as startDate, SUM(distance) as distance
+      FROM activity
+      WHERE start_date >= ${start} AND start_date <= ${end}
+      GROUP BY DATE_TRUNC('day', start_date)
+    `;
+    return res;
   }
 
   async getWebhookResponse(createActivityDto) {
