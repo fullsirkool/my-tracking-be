@@ -61,4 +61,10 @@ export class ActivityController {
       findMonthlyActivityDto,
     );
   }
+
+  @Get('/statistics/:stravaId')
+  // @UseInterceptors(ActivityTransformInterceptor)
+  async findStatistics(@Param('stravaId') stravaId: number) {
+    return await this.activityService.getTotalStatistics(+stravaId);
+  }
 }

@@ -83,18 +83,6 @@ export class ActivityService {
       requestDate.getMonth() + 1,
       0,
     );
-    // const activities = await this.prisma.activity.findMany({
-    //   where: {
-    //     userId: id,
-    //     startDate: {
-    //       gte: start,
-    //       lte: end,
-    //     },
-    //   },
-    //   orderBy: {
-    //     startDate: 'asc',
-    //   },
-    // });
     const res = await this.prisma.$queryRaw`
       SELECT DATE_TRUNC('day', start_date) as startDate, SUM(distance) as distance
       FROM activity
@@ -102,6 +90,47 @@ export class ActivityService {
       GROUP BY DATE_TRUNC('day', start_date)
     `;
     return res;
+  }
+
+  async getTotalStatistics(stravaId: number) {
+    if (!stravaId) {
+      throw new ForbiddenException('Strava ID Required!');
+    }
+
+    const owner = await this.prisma.user.findUnique({
+      where: {
+        stravaId: +stravaId,
+      },
+    });
+
+    if (!owner) {
+      throw new ForbiddenException('Not Found Owner!');
+    }
+
+    const { id } = owner;
+    const { _sum, _count } = await this.prisma.activity.aggregate({
+      _sum: {
+        distance: true,
+        movingTime: true,
+      },
+      _count: {
+        id: true,
+      },
+      where: {
+        userId: id,
+      },
+    });
+
+    const distance = _sum.distance;
+    const totalMovingTime = _sum.movingTime;
+    const count = _count.id;
+
+    const pace = totalMovingTime / (distance / 1000) / 60;
+    return {
+      distance,
+      pace,
+      count,
+    };
   }
 
   async getWebhookResponse(createActivityDto) {
