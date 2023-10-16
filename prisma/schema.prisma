@@ -11,74 +11,43 @@ datasource db {
 }
 
 model User {
-  id                 Int               @id @unique @default(autoincrement())
-  stravaId           Int               @unique @map(name: "strava_id")
-  firstName          String?           @map(name: "first_name")
-  lastName           String?           @map(name: "last_name")
+  id                 Int          @id @unique @default(autoincrement())
+  stravaId           Int          @unique @map(name: "strava_id")
+  firstName          String?      @map(name: "first_name")
+  lastName           String?      @map(name: "last_name")
   bio                String?
   city               String?
   state              String?
   country            String?
   sex                String?
-  profileMedium      String?           @map("profile_medium")
-  profile            String?           @map(name: "profile_long")
-  stravaRefreshToken String?           @map(name: "strava_refresh_token")
-  refreshToken       String?           @map(name: "refresh_token")
-  tokenExpiresAt     String?           @map(name: "token_expires")
-  leagueGroupUsers   LeagueGroupUser[]
+  profileMedium      String?      @map("profile_medium")
+  profile            String?      @map(name: "profile_long")
+  stravaRefreshToken String?      @map(name: "strava_refresh_token")
+  refreshToken       String?      @map(name: "refresh_token")
+  tokenExpiresAt     String?      @map(name: "token_expires")
   activities         Activity[]
+  leagues            League[]
+  leagueUsers        LeagueUser[]
 
   @@map("user")
 }
 
-model League {
-  id           Int           @id @unique @default(autoincrement())
-  name         String
-  startedAt    DateTime      @default(now()) @map(name: "started_at")
-  endAt        DateTime      @default(now()) @map(name: "end_at")
-  total        Float
-  leagueGroups LeagueGroup[]
-
-  @@map("league")
-}
-
-model LeagueGroup {
-  id              Int               @id @unique @default(autoincrement())
-  groupName       String            @map(name: "group_name")
-  leagueId        Int               @map(name: "league_id")
-  league          League            @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  leagueGroupUser LeagueGroupUser[]
-
-  @@map("league_group")
-}
-
-model LeagueGroupUser {
-  id            Int         @id @unique @default(autoincrement())
-  userId        Int         @map(name: "user_id")
-  leagueGroupId Int         @map(name: "league_group_id")
-  total         Float       @default(0)
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leagueGroup   LeagueGroup @relation(fields: [leagueGroupId], references: [id], onDelete: Cascade)
-
-  @@map("league_group_user")
-}
-
 model Activity {
-  id                 String        @id @unique
-  userId             Int           @map(name: "user_id")
+  id                 String   @id @unique
+  userId             Int      @map(name: "user_id")
   name               String
   distance           Float
-  movingTime         Float         @map(name: "moving_time")
-  elapsedTime        Int           @map(name: "elapsed_time")
-  totalElevationGain Float         @map(name: "total_elevation_gain")
+  movingTime         Float    @map(name: "moving_time")
+  elapsedTime        Int      @map(name: "elapsed_time")
+  totalElevationGain Float    @map(name: "total_elevation_gain")
   type               String
-  startDate          DateTime      @default(now()) @map(name: "start_date")
-  startDateLocal     DateTime      @default(now()) @map(name: "start_date_local")
+  startDate          DateTime @default(now()) @map(name: "start_date")
+  startDateLocal     DateTime @default(now()) @map(name: "start_date_local")
   visibility         String
-  averageSpeed       Float         @map(name: "average_speed")
-  maxSpeed           Float         @map(name: "max_speed")
-  isValid            Boolean       @default(true) @map(name: "is_valid")
-  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  averageSpeed       Float    @map(name: "average_speed")
+  maxSpeed           Float    @map(name: "max_speed")
+  isValid            Boolean  @default(true) @map(name: "is_valid")
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("activity")
 }
@@ -91,6 +60,54 @@ model Admin {
   refreshToken String?     @map("refresh_token")
 
   @@map("admin")
+}
+
+model League {
+  id        Int      @id @unique @default(autoincrement())
+  title     String
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  ownerId   Int      @map("owner_id")
+  user      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  rule      Rule?
+  groups    Group[]
+
+  @@map("league")
+}
+
+model Rule {
+  id          Int    @id @unique @default(autoincrement())
+  title       String
+  minPace     Float  @map("min_pace")
+  maxPace     Float  @map("max_pace")
+  minDistance Float  @map("min_distance")
+  maxDistance Float  @map("max_distance")
+  leagueId    Int    @unique @map("league_id")
+  league      League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  @@map("rule")
+}
+
+model Group {
+  id              Int          @id @unique @default(autoincrement())
+  title           String?
+  totalDistance   Float        @default(0) @map("total_distance")
+  totalMovingTime Float        @default(0) @map("totalMovingTime")
+  leagueId        Int          @map("league_id")
+  league          League       @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  leagueUsers     LeagueUser[]
+
+  @@map("league_group")
+}
+
+model LeagueUser {
+  id      Int   @id @unique @default(autoincrement())
+  groupId Int   @map("group_id")
+  userId  Int   @map("user_id")
+  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("league_user")
 }
 
 enum AdminStatus {
