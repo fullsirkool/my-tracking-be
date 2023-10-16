@@ -130,6 +130,7 @@ export class ActivityService {
       distance,
       pace,
       count,
+      totalMovingTime,
     };
   }
 
