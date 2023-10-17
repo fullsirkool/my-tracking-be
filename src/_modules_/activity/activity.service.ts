@@ -1,3 +1,4 @@
+import { DailyActivtyService } from './../daily-activty/daily-activty.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import {
   ConflictException,
@@ -23,6 +24,7 @@ export class ActivityService {
     private readonly httpService: HttpService,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
+    private readonly dailyActivtyService: DailyActivtyService,
   ) {}
 
   async findStravaActivity(id: number, token: string) {
@@ -84,10 +86,11 @@ export class ActivityService {
       0,
     );
     const res = await this.prisma.$queryRaw`
-      SELECT DATE_TRUNC('day', start_date) as startDate, SUM(distance) as distance
+      SELECT DATE_TRUNC('day', start_date_local) as startDate, SUM(distance) as distance
       FROM activity
-      WHERE start_date >= ${start} AND start_date <= ${end} AND user_id = ${id}
-      GROUP BY DATE_TRUNC('day', start_date)
+      WHERE start_date_local >= ${start} AND start_date_local <= ${end} AND user_id = ${id}
+      GROUP BY DATE_TRUNC('day', start_date_local)
+      ORDER BY startDate
     `;
     return res;
   }
@@ -169,7 +172,7 @@ export class ActivityService {
     );
 
     const res = await this.createActivity(owner.id, foundedActivity);
-
+    await this.dailyActivtyService.updateWebhookEvent(res);
     return res;
   }
 
@@ -299,6 +302,7 @@ export class ActivityService {
     const activities = await this.prisma.activity.createMany({
       data: payload,
     });
+    await this.dailyActivtyService.manualCreateMany(payload)
     return activities;
   }
 

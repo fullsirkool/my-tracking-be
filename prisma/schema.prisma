@@ -11,23 +11,24 @@ datasource db {
 }
 
 model User {
-  id                 Int          @id @unique @default(autoincrement())
-  stravaId           Int          @unique @map(name: "strava_id")
-  firstName          String?      @map(name: "first_name")
-  lastName           String?      @map(name: "last_name")
+  id                 Int             @id @unique @default(autoincrement())
+  stravaId           Int             @unique @map(name: "strava_id")
+  firstName          String?         @map(name: "first_name")
+  lastName           String?         @map(name: "last_name")
   bio                String?
   city               String?
   state              String?
   country            String?
   sex                String?
-  profileMedium      String?      @map("profile_medium")
-  profile            String?      @map(name: "profile_long")
-  stravaRefreshToken String?      @map(name: "strava_refresh_token")
-  refreshToken       String?      @map(name: "refresh_token")
-  tokenExpiresAt     String?      @map(name: "token_expires")
+  profileMedium      String?         @map("profile_medium")
+  profile            String?         @map(name: "profile_long")
+  stravaRefreshToken String?         @map(name: "strava_refresh_token")
+  refreshToken       String?         @map(name: "refresh_token")
+  tokenExpiresAt     String?         @map(name: "token_expires")
   activities         Activity[]
-  leagues            League[]
-  leagueUsers        LeagueUser[]
+  challenges            Challenge[]
+  challengeGroupUsers        ChallengeGroupUser[]
+  dailyActivity      DailyActivity[]
 
   @@map("user")
 }
@@ -52,6 +53,18 @@ model Activity {
   @@map("activity")
 }
 
+model DailyActivity {
+  id             Int      @id @unique @default(autoincrement())
+  distance       Float
+  movingTime     Float    @map(name: "moving_time")
+  elapsedTime    Int      @map(name: "elapsed_time")
+  startDateLocal DateTime @default(now()) @map(name: "start_date_local")
+  userId         Int      @map(name: "user_id")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("daily_activity")
+}
+
 model Admin {
   id           Int         @id @unique @default(autoincrement())
   username     String      @unique
@@ -62,7 +75,7 @@ model Admin {
   @@map("admin")
 }
 
-model League {
+model Challenge {
   id        Int      @id @unique @default(autoincrement())
   title     String
   startDate DateTime @map("start_date")
@@ -72,42 +85,42 @@ model League {
   rule      Rule?
   groups    Group[]
 
-  @@map("league")
+  @@map("challenge")
 }
 
 model Rule {
-  id          Int    @id @unique @default(autoincrement())
+  id          Int       @id @unique @default(autoincrement())
   title       String
-  minPace     Float  @map("min_pace")
-  maxPace     Float  @map("max_pace")
-  minDistance Float  @map("min_distance")
-  maxDistance Float  @map("max_distance")
-  leagueId    Int    @unique @map("league_id")
-  league      League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  minPace     Float     @map("min_pace")
+  maxPace     Float     @map("max_pace")
+  minDistance Float     @map("min_distance")
+  maxDistance Float     @map("max_distance")
+  challengeId Int       @unique @map("challenge_id")
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
 
   @@map("rule")
 }
 
 model Group {
-  id              Int          @id @unique @default(autoincrement())
-  title           String?
-  totalDistance   Float        @default(0) @map("total_distance")
-  totalMovingTime Float        @default(0) @map("totalMovingTime")
-  leagueId        Int          @map("league_id")
-  league          League       @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  leagueUsers     LeagueUser[]
+  id                  Int                  @id @unique @default(autoincrement())
+  title               String?
+  totalDistance       Float                @default(0) @map("total_distance")
+  totalMovingTime     Float                @default(0) @map("totalMovingTime")
+  challengeId         Int                  @unique @map("challenge_id")
+  challenge           Challenge            @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  challengeGroupUsers ChallengeGroupUser[]
 
-  @@map("league_group")
+  @@map("challenge_group")
 }
 
-model LeagueUser {
+model ChallengeGroupUser {
   id      Int   @id @unique @default(autoincrement())
   groupId Int   @map("group_id")
   userId  Int   @map("user_id")
   group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("league_user")
+  @@map("challenge_group_user")
 }
 
 enum AdminStatus {
