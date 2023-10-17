@@ -121,11 +121,11 @@ export class ActivityService {
       },
     });
 
-    const distance = _sum.distance;
-    const totalMovingTime = _sum.movingTime;
-    const count = _count.id;
+    const distance = _sum.distance || 0;
+    const totalMovingTime = _sum.movingTime || 0;
+    const count = _count.id || 0;
 
-    const pace = totalMovingTime / (distance / 1000) / 60;
+    const pace = totalMovingTime ? totalMovingTime / (distance / 1000) / 60 : 0;
     return {
       distance,
       pace,
