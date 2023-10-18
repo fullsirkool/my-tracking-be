@@ -1,6 +1,5 @@
-import { Controller, Post, UseGuards, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/decorators/user.decorator';
 import { CreateChallengeDto } from './challenge.dto';
@@ -20,5 +19,11 @@ export class ChallengeController {
     @Body() createChallengeDto: CreateChallengeDto,
   ) {
     return await this.challengeService.create(userId, createChallengeDto);
+  }
+
+  @Get('/code/:id')
+  @Auth()
+  generateCode(@User('id') userId: number, @Param('id') id: number) {
+    return this.challengeService.generateChallengeCode(userId, +id);
   }
 }

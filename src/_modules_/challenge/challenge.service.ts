@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateChallengeDto } from './challenge.dto';
+import { CreateChallengeCodeDto, CreateChallengeDto } from './challenge.dto';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -20,13 +20,10 @@ export class ChallengeService {
       maxDistance,
     } = createChallengeDto;
 
-    const code = this.generateRandomString(6);
-
     const createChallengePayload: Prisma.ChallengeCreateInput = {
       title,
       startDate,
       endDate,
-      code,
       user: {
         connect: {
           id: ownerId,
@@ -62,12 +59,43 @@ export class ChallengeService {
       createChallengePayload.rule.create.title = ruleTitle;
     }
 
-    console.log('createChallengePayload', createChallengePayload)
+    console.log('createChallengePayload', createChallengePayload);
 
     const challenge = await this.prisma.challenge.create({
       data: createChallengePayload,
     });
     return challenge;
+  }
+
+  async generateChallengeCode(ownerId: number, challengeId: number) {
+    const challenge = await this.prisma.challenge.findUnique({
+      where: { id: challengeId },
+    });
+
+    if (challenge.ownerId !== ownerId) {
+      throw new ForbiddenException("You're not allowed to generate code");
+    }
+
+    if (challenge.code) {
+      return challenge.code;
+    }
+
+    let code = this.generateRandomString(6);
+
+    while (code === challenge.code) {
+      code = this.generateRandomString(6);
+    }
+
+    const updatedChallenge = await this.prisma.challenge.update({
+      data: {
+        code,
+      },
+      where: {
+        id: challengeId,
+      },
+    });
+
+    return updatedChallenge.code;
   }
 
   private generateRandomString(length) {

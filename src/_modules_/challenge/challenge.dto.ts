@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ChallengeStatus } from '@prisma/client';
-import { IsDateString, IsNotEmpty } from 'class-validator';
+import { IsDateString, IsInt, IsNotEmpty } from 'class-validator';
 import { IsFloat } from 'src/decorators/validator.decorator';
 
 export class CreateChallengeDto {
@@ -39,4 +39,10 @@ export class CreateChallengeDto {
     enum: ChallengeStatus,
   })
   status: ChallengeStatus;
+}
+
+export class CreateChallengeCodeDto {
+  @IsInt()
+  @IsNotEmpty()
+  challengeId: number;
 }
