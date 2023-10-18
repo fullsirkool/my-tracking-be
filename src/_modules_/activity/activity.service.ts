@@ -85,13 +85,18 @@ export class ActivityService {
       requestDate.getMonth() + 1,
       0,
     );
-    const res = await this.prisma.$queryRaw`
-      SELECT DATE_TRUNC('day', start_date_local) as startDate, SUM(distance) as distance
-      FROM activity
-      WHERE start_date_local >= ${start} AND start_date_local <= ${end} AND user_id = ${id}
-      GROUP BY DATE_TRUNC('day', start_date_local)
-      ORDER BY startDate
-    `;
+    // const res = await this.prisma.$queryRaw`
+    //   SELECT DATE_TRUNC('day', start_date_local) as startDate, SUM(distance) as distance
+    //   FROM activity
+    //   WHERE start_date_local >= ${start} AND start_date_local <= ${end} AND user_id = ${id}
+    //   GROUP BY DATE_TRUNC('day', start_date_local)
+    //   ORDER BY startDate
+    // `;
+    const res = await this.dailyActivtyService.getMonthlyActivity(
+      id,
+      start,
+      end,
+    );
     return res;
   }
 
@@ -302,7 +307,7 @@ export class ActivityService {
     const activities = await this.prisma.activity.createMany({
       data: payload,
     });
-    await this.dailyActivtyService.manualCreateMany(payload)
+    await this.dailyActivtyService.manualCreateMany(payload);
     return activities;
   }
 

@@ -61,6 +61,21 @@ export class DailyActivtyService {
     }));
   }
 
+  async getMonthlyActivity(userId: number, start: Date, end: Date) {
+    return await this.prisma.dailyActivity.findMany({
+      where: {
+        userId,
+        startDateLocal: {
+          gte: start,
+          lte: end,
+        },
+      },
+      orderBy: {
+        startDateLocal: 'asc',
+      },
+    });
+  }
+
   async transform(userId: number) {
     const activities = await this.prisma.activity.findMany({
       where: {
