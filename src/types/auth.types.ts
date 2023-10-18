@@ -8,3 +8,5 @@ export type UserClaims = Pick<
   User,
   'id' | 'stravaId' | 'firstName' | 'lastName' | 'profile'
 >;
+
+export type AuthRole = 'RUNNER' | 'ADMIN' | 'ALL';

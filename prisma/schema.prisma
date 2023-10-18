@@ -11,24 +11,24 @@ datasource db {
 }
 
 model User {
-  id                 Int             @id @unique @default(autoincrement())
-  stravaId           Int             @unique @map(name: "strava_id")
-  firstName          String?         @map(name: "first_name")
-  lastName           String?         @map(name: "last_name")
-  bio                String?
-  city               String?
-  state              String?
-  country            String?
-  sex                String?
-  profileMedium      String?         @map("profile_medium")
-  profile            String?         @map(name: "profile_long")
-  stravaRefreshToken String?         @map(name: "strava_refresh_token")
-  refreshToken       String?         @map(name: "refresh_token")
-  tokenExpiresAt     String?         @map(name: "token_expires")
-  activities         Activity[]
-  challenges            Challenge[]
-  challengeGroupUsers        ChallengeGroupUser[]
-  dailyActivity      DailyActivity[]
+  id                  Int                  @id @unique @default(autoincrement())
+  stravaId            Int                  @unique @map(name: "strava_id")
+  firstName           String?              @map(name: "first_name")
+  lastName            String?              @map(name: "last_name")
+  bio                 String?
+  city                String?
+  state               String?
+  country             String?
+  sex                 String?
+  profileMedium       String?              @map("profile_medium")
+  profile             String?              @map(name: "profile_long")
+  stravaRefreshToken  String?              @map(name: "strava_refresh_token")
+  refreshToken        String?              @map(name: "refresh_token")
+  tokenExpiresAt      String?              @map(name: "token_expires")
+  activities          Activity[]
+  challenges          Challenge[]
+  challengeGroupUsers ChallengeGroupUser[]
+  dailyActivity       DailyActivity[]
 
   @@map("user")
 }
@@ -76,12 +76,14 @@ model Admin {
 }
 
 model Challenge {
-  id        Int      @id @unique @default(autoincrement())
+  id        Int             @id @unique @default(autoincrement())
   title     String
-  startDate DateTime @map("start_date")
-  endDate   DateTime @map("end_date")
-  ownerId   Int      @map("owner_id")
-  user      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  startDate DateTime        @map("start_date")
+  endDate   DateTime        @map("end_date")
+  ownerId   Int             @map("owner_id")
+  code      String?
+  status    ChallengeStatus @default(PUBLIC)
+  user      User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   rule      Rule?
   groups    Group[]
 
@@ -90,13 +92,13 @@ model Challenge {
 
 model Rule {
   id          Int       @id @unique @default(autoincrement())
-  title       String
-  minPace     Float     @map("min_pace")
-  maxPace     Float     @map("max_pace")
-  minDistance Float     @map("min_distance")
-  maxDistance Float     @map("max_distance")
+  title       String?
+  minPace     Float?     @map("min_pace")
+  maxPace     Float?     @map("max_pace")
+  minDistance Float?     @map("min_distance")
+  maxDistance Float?     @map("max_distance")
   challengeId Int       @unique @map("challenge_id")
-  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  challenge   Challenge? @relation(fields: [challengeId], references: [id], onDelete: Cascade)
 
   @@map("rule")
 }
@@ -126,4 +128,9 @@ model ChallengeGroupUser {
 enum AdminStatus {
   ACTIVE
   INACTIVE
+}
+
+enum ChallengeStatus {
+  PUBLIC
+  PRIVATE
 }

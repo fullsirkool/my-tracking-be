@@ -8,6 +8,7 @@ import { PrismaModule } from './_modules_/prisma/prisma.module';
 import { ActivityModule } from './_modules_/activity/activity.module';
 import { AdminModule } from './_modules_/admin/admin.module';
 import { DailyActivtyModule } from './_modules_/daily-activty/daily-activty.module';
+import { ChallengeModule } from './_modules_/challenge/challenge.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { DailyActivtyModule } from './_modules_/daily-activty/daily-activty.modu
     ActivityModule,
     AdminModule,
     DailyActivtyModule,
+    ChallengeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
