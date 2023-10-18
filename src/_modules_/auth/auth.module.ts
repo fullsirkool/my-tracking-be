@@ -8,6 +8,7 @@ import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from '../../strategies/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ActivityModule } from '../activity/activity.module';
+import { JwtRefreshStrategy } from 'src/strategies/jwt-refresh.strategy';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { ActivityModule } from '../activity/activity.module';
     forwardRef(() => ActivityModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy],
+  providers: [AuthService, LocalStrategy, JwtRefreshStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

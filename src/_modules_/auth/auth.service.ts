@@ -1,7 +1,12 @@
 import { catchError, firstValueFrom } from 'rxjs';
 import { UserService } from './../user/user.service';
 import { PrismaService } from './../prisma/prisma.service';
-import { Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  UnauthorizedException,
+  forwardRef,
+} from '@nestjs/common';
 import { AuthDto, SignInAdminDto } from './auth.dto';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
@@ -156,6 +161,21 @@ export class AuthService {
       ...tokens,
       admin: exclude(admin, ['password', 'refreshToken']),
     };
+  }
+
+  async renewToken(userId: number, refreshToken: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (refreshToken !== user.refreshToken) {
+      throw new UnauthorizedException();
+    }
+
+    const tokens = await this.generateTokens(user);
+    return tokens;
   }
 
   private async generateAdminTokens(claims: Claims) {

@@ -29,3 +29,9 @@ export class SignInAdminDto {
   @IsNotEmpty()
   password: string;
 }
+
+export class RenewDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  refreshToken: string;
+}
