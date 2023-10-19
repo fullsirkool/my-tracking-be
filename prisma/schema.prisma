@@ -81,7 +81,8 @@ model Challenge {
   startDate       DateTime         @map("start_date")
   endDate         DateTime         @map("end_date")
   ownerId         Int              @map("owner_id")
-  code            String?
+  code            String?          @unique @default(uuid())
+  challengeType   ChallengeType    @default(ONE_VS_MANY) @map("challenge_type")
   status          ChallengeStatus  @default(PUBLIC)
   user            User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   challengeGroups ChallengeGroup[]
@@ -107,6 +108,7 @@ model Rule {
 model ChallengeGroup {
   id             Int             @id @unique @default(autoincrement())
   title          String?
+  code           String?         @unique @default(uuid())
   challengeId    Int             @unique @map("challenge_id")
   challenge      Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
   challengeUsers ChallengeUser[]
@@ -134,4 +136,10 @@ enum AdminStatus {
 enum ChallengeStatus {
   PUBLIC
   PRIVATE
+}
+
+enum ChallengeType {
+  ONE_VS_MANY
+  ONE_VS_ONE
+  GROUP_VS_GROUP
 }

@@ -9,6 +9,8 @@ import { ActivityModule } from './_modules_/activity/activity.module';
 import { AdminModule } from './_modules_/admin/admin.module';
 import { DailyActivtyModule } from './_modules_/daily-activty/daily-activty.module';
 import { ChallengeModule } from './_modules_/challenge/challenge.module';
+import { ChallengeGroupModule } from './_modules_/challenge-group/challenge-group.module';
+import { ChallengeUserModule } from './_modules_/challenge-user/challenge-user.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { ChallengeModule } from './_modules_/challenge/challenge.module';
     AdminModule,
     DailyActivtyModule,
     ChallengeModule,
+    ChallengeGroupModule,
+    ChallengeUserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

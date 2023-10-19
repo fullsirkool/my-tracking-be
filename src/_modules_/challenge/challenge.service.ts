@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateChallengeCodeDto, CreateChallengeDto } from './challenge.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, ChallengeStatus } from '@prisma/client';
 
 @Injectable()
 export class ChallengeService {
@@ -18,6 +18,7 @@ export class ChallengeService {
       maxPace,
       minDistance,
       maxDistance,
+      challengeType,
     } = createChallengeDto;
 
     const createChallengePayload: Prisma.ChallengeCreateInput = {
@@ -36,6 +37,9 @@ export class ChallengeService {
 
     if (status) {
       createChallengePayload.status = status;
+    }
+    if (status) {
+      createChallengePayload.challengeType = challengeType;
     }
     if (minPace) {
       const [minPaceMinute, minPaceSecond] = minPace.split(':');
@@ -67,45 +71,15 @@ export class ChallengeService {
     return challenge;
   }
 
-  async generateChallengeCode(ownerId: number, challengeId: number) {
+  async getChallengeCode(challengeId: number) {
     const challenge = await this.prisma.challenge.findUnique({
       where: { id: challengeId },
     });
 
-    if (challenge.ownerId !== ownerId) {
-      throw new ForbiddenException("You're not allowed to generate code");
-    }
-
-    if (challenge.code) {
-      return challenge.code;
-    }
-
-    let code = this.generateRandomString(6);
-
-    while (code === challenge.code) {
-      code = this.generateRandomString(6);
-    }
-
-    const updatedChallenge = await this.prisma.challenge.update({
-      data: {
-        code,
-      },
-      where: {
-        id: challengeId,
-      },
-    });
-
-    return updatedChallenge.code;
+    return `/challenge/join/${challenge.code}`;
   }
 
-  private generateRandomString(length) {
-    const characters =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters.charAt(randomIndex);
-    }
-    return result;
+  async joinChallenge(userId: number, challengeId: number) {
+    // Create new challengeUser
   }
 }

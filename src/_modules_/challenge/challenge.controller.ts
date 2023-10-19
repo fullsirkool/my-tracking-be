@@ -4,6 +4,7 @@ import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/decorators/user.decorator';
 import { CreateChallengeDto } from './challenge.dto';
 import { Auth } from 'src/decorators/auth.decorator';
+import { ChallengeStatus, ChallengeType } from '@prisma/client';
 
 @Controller('challenge')
 @ApiTags('challenge')
@@ -22,8 +23,23 @@ export class ChallengeController {
   }
 
   @Get('/code/:id')
+  generateCode(@Param('id') id: number) {
+    return this.challengeService.getChallengeCode(+id);
+  }
+
+  @Post('/join/:id')
   @Auth()
-  generateCode(@User('id') userId: number, @Param('id') id: number) {
-    return this.challengeService.generateChallengeCode(userId, +id);
+  joinChallenge(@User('id') userId: number, @Param('id') id: number) {
+    return this.challengeService.joinChallenge(userId, +id);
+  }
+
+  @Get('/status')
+  getStatus() {
+    return ChallengeStatus;
+  }
+
+  @Get('/type')
+  getTypes() {
+    return ChallengeType;
   }
 }
