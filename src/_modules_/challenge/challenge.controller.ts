@@ -33,13 +33,11 @@ export class ChallengeController {
     return this.challengeService.joinChallenge(userId, +id);
   }
 
-  @Get('/status')
+  @Get('/utilities')
   getStatus() {
-    return ChallengeStatus;
-  }
-
-  @Get('/type')
-  getTypes() {
-    return ChallengeType;
+    return {
+      states: ChallengeStatus,
+      types: ChallengeType,
+    };
   }
 }
