@@ -36,8 +36,8 @@ export class ChallengeController {
   @Get('/utilities')
   getStatus() {
     return {
-      states: ChallengeStatus,
-      types: ChallengeType,
+      states: Object.keys(ChallengeStatus),
+      types: Object.keys(ChallengeType),
     };
   }
 }
