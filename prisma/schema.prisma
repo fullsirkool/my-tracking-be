@@ -84,7 +84,7 @@ model Challenge {
   code            String?          @unique @default(uuid())
   challengeType   ChallengeType    @default(ONE_VS_MANY) @map("challenge_type")
   status          ChallengeStatus  @default(PUBLIC)
-  user            User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner           User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   challengeGroups ChallengeGroup[]
   challengeUsers  ChallengeUser[]
   rule            Rule?

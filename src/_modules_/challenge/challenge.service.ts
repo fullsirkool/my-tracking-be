@@ -1,13 +1,16 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateChallengeCodeDto, CreateChallengeDto } from './challenge.dto';
-import { Prisma, ChallengeStatus } from '@prisma/client';
+import { Prisma, ChallengeStatus, Challenge } from '@prisma/client';
 
 @Injectable()
 export class ChallengeService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(ownerId: number, createChallengeDto: CreateChallengeDto) {
+  async create(
+    ownerId: number,
+    createChallengeDto: CreateChallengeDto,
+  ): Promise<Challenge> {
     const {
       title,
       startDate,
@@ -25,7 +28,7 @@ export class ChallengeService {
       title,
       startDate,
       endDate,
-      user: {
+      owner: {
         connect: {
           id: ownerId,
         },
@@ -71,7 +74,45 @@ export class ChallengeService {
     return challenge;
   }
 
-  async getChallengeCode(challengeId: number) {
+  async find(): Promise<Challenge[]> {
+    const challenges = await this.prisma.challenge.findMany({
+      include: {
+        owner: {
+          select: {
+            id: true,
+            stravaId: true,
+            firstName: true,
+            lastName: true,
+            profile: true,
+          },
+        },
+      },
+    });
+    return challenges;
+  }
+
+  async findOne(id: number): Promise<Challenge> {
+    const challenge = await this.prisma.challenge.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            stravaId: true,
+            firstName: true,
+            lastName: true,
+            profile: true,
+          },
+        },
+      },
+    });
+
+    return challenge;
+  }
+
+  async getChallengeCode(challengeId: number): Promise<string> {
     const challenge = await this.prisma.challenge.findUnique({
       where: { id: challengeId },
     });

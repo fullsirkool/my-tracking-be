@@ -1,10 +1,17 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/decorators/user.decorator';
 import { CreateChallengeDto } from './challenge.dto';
 import { Auth } from 'src/decorators/auth.decorator';
-import { ChallengeStatus, ChallengeType } from '@prisma/client';
+import { Challenge, ChallengeStatus, ChallengeType } from '@prisma/client';
 
 @Controller('challenge')
 @ApiTags('challenge')
@@ -18,13 +25,13 @@ export class ChallengeController {
   async create(
     @User('id') userId: number,
     @Body() createChallengeDto: CreateChallengeDto,
-  ) {
+  ): Promise<Challenge> {
     return await this.challengeService.create(userId, createChallengeDto);
   }
 
   @Get('/code/:id')
-  generateCode(@Param('id') id: number) {
-    return this.challengeService.getChallengeCode(+id);
+  async generateCode(@Param('id') id: number): Promise<string> {
+    return await this.challengeService.getChallengeCode(+id);
   }
 
   @Post('/join/:id')
@@ -33,11 +40,12 @@ export class ChallengeController {
     return this.challengeService.joinChallenge(userId, +id);
   }
 
-  @Get('/utilities')
-  getStatus() {
-    return {
-      states: Object.keys(ChallengeStatus),
-      types: Object.keys(ChallengeType),
-    };
+  @Get('')
+  async find(): Promise<Challenge[]> {
+    return await this.challengeService.find();
+  }
+  @Get('/:id')
+  async findOne(@Param('id') id: number): Promise<Challenge> {
+    return await this.challengeService.findOne(+id);
   }
 }
