@@ -11,6 +11,8 @@ import { DailyActivtyModule } from './_modules_/daily-activty/daily-activty.modu
 import { ChallengeModule } from './_modules_/challenge/challenge.module';
 import { ChallengeGroupModule } from './_modules_/challenge-group/challenge-group.module';
 import { ChallengeUserModule } from './_modules_/challenge-user/challenge-user.module';
+import { FileModule } from './_modules_/file/file.module';
+import { FirebaseModule } from './_modules_/firebase/firebase.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { ChallengeUserModule } from './_modules_/challenge-user/challenge-user.m
     ChallengeModule,
     ChallengeGroupModule,
     ChallengeUserModule,
+    FileModule,
+    FirebaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
