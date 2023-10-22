@@ -82,6 +82,7 @@ model Challenge {
   endDate         DateTime         @map("end_date")
   ownerId         Int              @map("owner_id")
   code            String?          @unique @default(uuid())
+  image           String?
   challengeType   ChallengeType    @default(ONE_VS_MANY) @map("challenge_type")
   status          ChallengeStatus  @default(PUBLIC)
   owner           User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)

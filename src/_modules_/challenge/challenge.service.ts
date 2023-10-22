@@ -16,6 +16,7 @@ export class ChallengeService {
       startDate,
       endDate,
       status,
+      image,
       ruleTitle,
       minPace,
       maxPace,
@@ -41,8 +42,11 @@ export class ChallengeService {
     if (status) {
       createChallengePayload.status = status;
     }
-    if (status) {
+    if (challengeType) {
       createChallengePayload.challengeType = challengeType;
+    }
+    if (image) {
+      createChallengePayload.image = image;
     }
     if (minPace) {
       const [minPaceMinute, minPaceSecond] = minPace.split(':');

@@ -19,13 +19,12 @@ export class FileService {
         metadata: {
           contentType: file.mimetype,
         },
+        public: true,
       });
 
       await blobWriter.end(file.buffer);
-      await blob.makePublic();
-      const url = blob.publicUrl();
 
-      console.log('uploaded', url);
+      const url = await blob.publicUrl();
       return url;
     } catch (error) {
       console.log(error);

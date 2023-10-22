@@ -16,6 +16,10 @@ export class CreateChallengeDto {
   @IsDateString()
   endDate: Date;
 
+  @ApiProperty({ required: true })
+  @IsDateString()
+  image: string;
+
   @ApiProperty()
   ruleTitle: string;
 
