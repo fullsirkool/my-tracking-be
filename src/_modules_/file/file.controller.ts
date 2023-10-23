@@ -11,6 +11,7 @@ export class FileController {
   @Post('upload')
   @ApiFile()
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    console.log('file', file)
     const destination = `images`
     return await this.fileService.uploadFile(file, destination);
   }
