@@ -1,7 +1,11 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateChallengeCodeDto, CreateChallengeDto } from './challenge.dto';
-import { Prisma, ChallengeStatus, Challenge } from '@prisma/client';
+import {
+  CreateChallengeDto,
+  FindChallengeDto,
+  FindChallengeResponse,
+} from './challenge.dto';
+import { Prisma, Challenge } from '@prisma/client';
 
 @Injectable()
 export class ChallengeService {
@@ -78,21 +82,36 @@ export class ChallengeService {
     return challenge;
   }
 
-  async find(): Promise<Challenge[]> {
-    const challenges = await this.prisma.challenge.findMany({
-      include: {
-        owner: {
-          select: {
-            id: true,
-            stravaId: true,
-            firstName: true,
-            lastName: true,
-            profile: true,
+  async find(
+    findChallengeDto: FindChallengeDto,
+  ): Promise<FindChallengeResponse> {
+    const { page, size } = findChallengeDto;
+    const skip = (page - 1) * size;
+    const [challenges, count] = await Promise.all([
+      this.prisma.challenge.findMany({
+        take: size,
+        skip,
+        include: {
+          owner: {
+            select: {
+              id: true,
+              stravaId: true,
+              firstName: true,
+              lastName: true,
+              profile: true,
+            },
           },
         },
-      },
-    });
-    return challenges;
+      }),
+      await this.prisma.challenge.count({}),
+    ]);
+    return {
+      data: challenges,
+      page,
+      size,
+      totalPages: Math.ceil(count / size) || 0,
+      totalElement: count,
+    };
   }
 
   async findOne(id: number): Promise<Challenge> {

@@ -1,7 +1,9 @@
+import { BasePagingResponse } from './../../types/base.types';
 import { ApiProperty } from '@nestjs/swagger';
-import { ChallengeStatus, ChallengeType } from '@prisma/client';
+import { Challenge, ChallengeStatus, ChallengeType } from '@prisma/client';
 import { IsDateString, IsInt, IsNotEmpty } from 'class-validator';
 import { IsFloat } from 'src/decorators/validator.decorator';
+import { BasePagingDto } from 'src/types/base.types';
 
 export class CreateChallengeDto {
   @ApiProperty({ required: true })
@@ -55,3 +57,6 @@ export class CreateChallengeCodeDto {
   @IsNotEmpty()
   challengeId: number;
 }
+
+export class FindChallengeDto extends BasePagingDto {}
+export class FindChallengeResponse extends BasePagingResponse<Challenge> {}

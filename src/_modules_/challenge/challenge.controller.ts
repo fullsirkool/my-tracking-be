@@ -1,17 +1,14 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  Param,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/decorators/user.decorator';
-import { CreateChallengeDto } from './challenge.dto';
+import {
+  CreateChallengeDto,
+  FindChallengeDto,
+  FindChallengeResponse,
+} from './challenge.dto';
 import { Auth } from 'src/decorators/auth.decorator';
-import { Challenge, ChallengeStatus, ChallengeType } from '@prisma/client';
+import { Challenge } from '@prisma/client';
 
 @Controller('challenge')
 @ApiTags('challenge')
@@ -41,8 +38,10 @@ export class ChallengeController {
   }
 
   @Get('')
-  async find(): Promise<Challenge[]> {
-    return await this.challengeService.find();
+  async find(
+    @Query() findChallengeDto: FindChallengeDto,
+  ): Promise<FindChallengeResponse> {
+    return await this.challengeService.find(findChallengeDto);
   }
   @Get('/:id')
   async findOne(@Param('id') id: number): Promise<Challenge> {
