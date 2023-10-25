@@ -55,11 +55,15 @@ export class ChallengeService {
       createChallengePayload.image = image;
     }
     if (minPace) {
-      createChallengePayload.rule.create.minPace = minPace;
+      const [minute, second] = minPace.split(':');
+      const minPaceToSecond = Number(minute) * 60 + Number(second);
+      createChallengePayload.rule.create.minPace = minPaceToSecond;
     }
 
     if (maxPace) {
-      createChallengePayload.rule.create.maxPace = maxPace;
+      const [minute, second] = maxPace.split(':');
+      const maxPaceToSecond = Number(minute) * 60 + Number(second);
+      createChallengePayload.rule.create.maxPace = maxPaceToSecond;
     }
     if (minDistance) {
       createChallengePayload.rule.create.minDistance = minDistance;

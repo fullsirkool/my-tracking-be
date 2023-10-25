@@ -28,11 +28,11 @@ export class CreateChallengeDto {
 
   @OptionalProperty()
   @IsString()
-  minPace: number;
+  minPace: string;
 
   @OptionalProperty()
   @IsString()
-  maxPace: number;
+  maxPace: string;
 
   @OptionalProperty()
   @IsFloat
