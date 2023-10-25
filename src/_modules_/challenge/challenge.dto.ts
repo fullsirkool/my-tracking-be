@@ -27,22 +27,19 @@ export class CreateChallengeDto {
   ruleTitle: string;
 
   @OptionalProperty()
+  @Transform(
+    ({ value }) => {
+      const [minute, second] = value.split(':');
+      return minute * 60 + +second;
+    },
+    { toClassOnly: true },
+  )
   @Matches(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/, {
     message: 'minPace should be in "mm:ss" format',
   })
-  @Transform(
-    ({ value }) => {
-      const [minute, second] = value.split(':');
-      return minute * 60 + +second;
-    },
-    { toClassOnly: true },
-  )
   minPace: number;
 
   @OptionalProperty()
-  @Matches(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/, {
-    message: 'maxPace should be in "mm:ss" format',
-  })
   @Transform(
     ({ value }) => {
       const [minute, second] = value.split(':');
@@ -50,6 +47,9 @@ export class CreateChallengeDto {
     },
     { toClassOnly: true },
   )
+  @Matches(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/, {
+    message: 'maxPace should be in "mm:ss" format',
+  })
   maxPace: number;
 
   @OptionalProperty()
