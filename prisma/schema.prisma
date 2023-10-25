@@ -120,7 +120,7 @@ model ChallengeGroup {
 model ChallengeUser {
   id               Int             @id @unique @default(autoincrement())
   userId           Int             @map("user_id")
-  challengeId      Int             @unique @map("challenge_id")
+  challengeId      Int             @map("challenge_id")
   challengeGroupId Int?            @map("challenge_group_id")
   user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   challenge        Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)

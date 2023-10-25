@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotAcceptableException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateChallengeDto,
   FindChallengeDto,
   FindChallengeResponse,
 } from './challenge.dto';
-import { Prisma, Challenge } from '@prisma/client';
+import { Prisma, Challenge, ChallengeUser } from '@prisma/client';
 
 @Injectable()
 export class ChallengeService {
@@ -42,6 +42,15 @@ export class ChallengeService {
       },
       rule: {
         create: {},
+      },
+      challengeUsers: {
+        create: {
+          user: {
+            connect: {
+              id: ownerId,
+            },
+          },
+        },
       },
     };
 
@@ -145,7 +154,49 @@ export class ChallengeService {
     return `/challenge/join/${challenge.code}`;
   }
 
-  async joinChallenge(userId: number, challengeId: number) {
-    // Create new challengeUser
+  async joinChallenge(
+    userId: number,
+    challengeId: number,
+  ): Promise<ChallengeUser> {
+    const createdChallengeUser = await this.prisma.challengeUser.findFirst({
+      where: {
+        userId,
+        challengeId,
+      },
+      include: {
+        challenge: true,
+      },
+    });
+
+    if (createdChallengeUser.id) {
+      throw new ConflictException('User has joined this challenge!');
+    }
+
+    if (createdChallengeUser.challenge.challengeType === 'ONE_VS_ONE') {
+      const count = await this.prisma.challengeUser.count({
+        where: {
+          challengeId
+        }
+      })
+
+      if (count >= 2) {
+        throw new NotAcceptableException('This challenge is full!');
+      }
+    }
+
+    return await this.prisma.challengeUser.create({
+      data: {
+        challenge: {
+          connect: {
+            id: challengeId,
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    });
   }
 }
