@@ -1,8 +1,9 @@
 import { BasePagingResponse } from './../../types/base.types';
 import { ApiProperty } from '@nestjs/swagger';
 import { Challenge, ChallengeStatus, ChallengeType } from '@prisma/client';
-import { IsDateString, IsInt, IsNotEmpty } from 'class-validator';
-import { IsFloat } from 'src/decorators/validator.decorator';
+import { Transform } from 'class-transformer';
+import { IsDateString, IsInt, IsNotEmpty, Matches, min } from 'class-validator';
+import { IsFloat, OptionalProperty } from 'src/decorators/validator.decorator';
 import { BasePagingDto } from 'src/types/base.types';
 
 export class CreateChallengeDto {
@@ -22,22 +23,40 @@ export class CreateChallengeDto {
   @IsNotEmpty()
   image: string;
 
-  @ApiProperty()
+  @OptionalProperty()
   ruleTitle: string;
 
-  @ApiProperty()
-  @IsFloat
-  minPace: string;
+  @OptionalProperty()
+  @Matches(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/, {
+    message: 'minPace should be in "mm:ss" format',
+  })
+  @Transform(
+    ({ value }) => {
+      const [minute, second] = value.split(':');
+      return minute * 60 + +second;
+    },
+    { toClassOnly: true },
+  )
+  minPace: number;
 
-  @ApiProperty()
-  @IsFloat
-  maxPace: string;
+  @OptionalProperty()
+  @Matches(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/, {
+    message: 'maxPace should be in "mm:ss" format',
+  })
+  @Transform(
+    ({ value }) => {
+      const [minute, second] = value.split(':');
+      return minute * 60 + +second;
+    },
+    { toClassOnly: true },
+  )
+  maxPace: number;
 
-  @ApiProperty()
+  @OptionalProperty()
   @IsFloat
   minDistance: number;
 
-  @ApiProperty()
+  @OptionalProperty()
   @IsFloat
   maxDistance: number;
 

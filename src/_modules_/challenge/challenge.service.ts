@@ -29,6 +29,8 @@ export class ChallengeService {
       challengeType,
     } = createChallengeDto;
 
+    console.log('createChallengeDto', createChallengeDto);
+
     const createChallengePayload: Prisma.ChallengeCreateInput = {
       title,
       startDate,
@@ -53,15 +55,11 @@ export class ChallengeService {
       createChallengePayload.image = image;
     }
     if (minPace) {
-      const [minPaceMinute, minPaceSecond] = minPace.split(':');
-      const minPaceToSecond = +minPaceMinute * 60 + +minPaceSecond;
-      createChallengePayload.rule.create.minPace = minPaceToSecond;
+      createChallengePayload.rule.create.minPace = minPace;
     }
 
     if (maxPace) {
-      const [maxPaceMinute, maxPaceSecond] = maxPace.split(':');
-      const maxPaceToSecond = +maxPaceMinute * 60 + +maxPaceSecond;
-      createChallengePayload.rule.create.maxPace = maxPaceToSecond;
+      createChallengePayload.rule.create.maxPace = maxPace;
     }
     if (minDistance) {
       createChallengePayload.rule.create.minDistance = minDistance;

@@ -1,6 +1,12 @@
 import { ApiPropertyOptional, ApiPropertyOptions } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  Matches,
+} from 'class-validator';
 
 /* eslint-disable-next-line */
 export function IsBool(target: Object, propertyKey: string | symbol) {
