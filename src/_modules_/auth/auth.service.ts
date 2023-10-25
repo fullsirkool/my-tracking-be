@@ -16,6 +16,7 @@ import { Claims, UserClaims } from 'src/types/auth.types';
 import { JwtService } from '@nestjs/jwt';
 import { exclude } from 'src/utils/transform.utils';
 import { ActivityService } from '../activity/activity.service';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -205,26 +206,37 @@ export class AuthService {
     };
   }
 
-  private async generateTokens(claims: UserClaims) {
-    const accessToken = this.jwtService.sign(claims, {
-      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
-      secret: process.env.ACCESS_TOKEN_SECRET,
-    });
-
-    const refreshToken = this.jwtService.sign(
-      { sub: claims.id },
+  private async generateTokens(user: User) {
+    const { id, stravaId, firstName, lastName, profile, refreshToken } = user;
+    const accessToken = this.jwtService.sign(
+      { id, stravaId, firstName, lastName, profile },
       {
-        expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
-        secret: process.env.REFRESH_TOKEN_SECRET,
+        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
+        secret: process.env.ACCESS_TOKEN_SECRET,
       },
     );
 
-    await this.prisma.user.update({
-      where: { id: claims.id },
-      data: {
-        refreshToken,
-      },
-    });
+    if (!refreshToken) {
+      const newRefreshToken = this.jwtService.sign(
+        { sub: id },
+        {
+          expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
+          secret: process.env.REFRESH_TOKEN_SECRET,
+        },
+      );
+
+      await this.prisma.user.update({
+        where: { id: id },
+        data: {
+          refreshToken: newRefreshToken,
+        },
+      });
+
+      return {
+        accessToken,
+        refreshToken: newRefreshToken,
+      };
+    }
 
     return {
       accessToken,
