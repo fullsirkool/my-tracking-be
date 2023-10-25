@@ -19,7 +19,7 @@ export class CreateChallengeDto {
   endDate: Date;
 
   @ApiProperty({ required: true })
-  @IsDateString()
+  @IsNotEmpty()
   image: string;
 
   @ApiProperty()
