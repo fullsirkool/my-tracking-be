@@ -57,7 +57,6 @@ export class DailyActivtyService {
       movingTime: item.movingTime,
       elapsedTime: item.elapsedTime,
       startDateLocal: item.startDateLocal,
-      isValid: true,
     }));
   }
 
@@ -105,11 +104,8 @@ export class DailyActivtyService {
     const timeValueMap = {};
 
     cloneActivties.forEach((item) => {
-      const { distance, movingTime, elapsedTime, startDateLocal, isValid } =
+      const { distance, movingTime, elapsedTime, startDateLocal } =
         item;
-      if (!isValid) {
-        return;
-      }
 
       const timeString = startDateLocal.toISOString();
       if (timeValueMap[timeString]) {
