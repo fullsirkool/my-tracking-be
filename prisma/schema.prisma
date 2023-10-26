@@ -29,7 +29,7 @@ model User {
   challenges         Challenge[]
   challengeUsers     ChallengeUser[]
   dailyActivity      DailyActivity[]
-  ChallengeActivity  ChallengeActivity[]
+  challengeActivity  ChallengeActivity[]
 
   @@map("user")
 }
@@ -49,7 +49,7 @@ model Activity {
   averageSpeed       Float              @map(name: "average_speed")
   maxSpeed           Float              @map(name: "max_speed")
   user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ChallengeActivity  ChallengeActivity?
+  challengeActivity  ChallengeActivity?
 
   @@map("activity")
 }
@@ -90,7 +90,7 @@ model Challenge {
   challengeGroups   ChallengeGroup[]
   challengeUsers    ChallengeUser[]
   rule              Rule?
-  ChallengeActivity ChallengeActivity[]
+  challengeActivity ChallengeActivity[]
 
   @@map("challenge")
 }

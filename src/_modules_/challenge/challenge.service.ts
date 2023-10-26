@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotAcceptableException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotAcceptableException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateChallengeDto,
@@ -140,6 +144,23 @@ export class ChallengeService {
             profile: true,
           },
         },
+        challengeActivity: {
+          select: {
+            activity: true,
+            user: {
+              select: {
+                id: true,
+                stravaId: true,
+                firstName: true,
+                lastName: true,
+                profile: true,
+              },
+            },
+          },
+          where: {
+            isValid: true,
+          },
+        },
       },
     });
 
@@ -175,9 +196,9 @@ export class ChallengeService {
     if (createdChallengeUser.challenge.challengeType === 'ONE_VS_ONE') {
       const count = await this.prisma.challengeUser.count({
         where: {
-          challengeId
-        }
-      })
+          challengeId,
+        },
+      });
 
       if (count >= 2) {
         throw new NotAcceptableException('This challenge is full!');
