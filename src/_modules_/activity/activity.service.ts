@@ -16,6 +16,8 @@ import {
   FindMonthlyActivityDto,
   CreateManyActivitiesDto,
 } from './activity.dto';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class ActivityService {
@@ -25,6 +27,7 @@ export class ActivityService {
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
     private readonly dailyActivtyService: DailyActivtyService,
+    @InjectQueue('activity') private readonly activityTaskQueue: Queue,
   ) {}
 
   async findStravaActivity(id: number, token: string) {
@@ -85,13 +88,6 @@ export class ActivityService {
       requestDate.getMonth() + 1,
       0,
     );
-    // const res = await this.prisma.$queryRaw`
-    //   SELECT DATE_TRUNC('day', start_date_local) as startDate, SUM(distance) as distance
-    //   FROM activity
-    //   WHERE start_date_local >= ${start} AND start_date_local <= ${end} AND user_id = ${id}
-    //   GROUP BY DATE_TRUNC('day', start_date_local)
-    //   ORDER BY startDate
-    // `;
     const res = await this.dailyActivtyService.getMonthlyActivity(
       id,
       start,
@@ -198,6 +194,10 @@ export class ActivityService {
       splits_metric,
     } = activityDto;
 
+    if (type !== 'Run') {
+      return;
+    }
+
     const foundedActivity = await this.findOneByActivityId(id);
 
     if (foundedActivity) {
@@ -223,76 +223,12 @@ export class ActivityService {
     });
 
     // Add Challenge Activity //
-
-    let isValid = type === 'Run';
-    if (distance < 1000) {
-      isValid = false;
-    }
-
-    let activityMinPace =
-      splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
-    let activityMaxPace =
-      splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
-
-    // const invalidSplitMetric = splits_metric.find((item) => {
-    //   const { distance, moving_time } = item;
-    //   if (distance < 100) {
-    //     return false;
-    //   }
-    //   const pace = moving_time / (distance / 1000) / 60;
-    //   if (pace > 15 || pace < 4) {
-    //     return true;
-    //   }
-    // });
-
-    splits_metric.forEach((element) => {
-      const { distance, moving_time } = element;
-      if (distance < 100) {
-        return;
-      }
-
-      const pace = moving_time / (distance / 1000);
-      activityMinPace = Math.min(activityMinPace, pace);
-      activityMaxPace = Math.max(activityMaxPace, pace);
-    });
-
-    const challenges = await this.prisma.challengeUser.findMany({
-      where: {
+    await this.activityTaskQueue.add('import', {
+      data: {
         userId,
-        challenge: {
-          startDate: {
-            lte: new Date(),
-          },
-          endDate: {
-            gte: new Date(),
-          },
-        },
+        activity,
+        splits_metric,
       },
-      select: {
-        id: true,
-        challenge: {
-          include: {
-            rule: true,
-          },
-        },
-      },
-    });
-
-    console.log('pace', activityMinPace, activityMaxPace)
-
-    const payload = challenges.map((element) => {
-      const { challenge } = element;
-      const { rule } = challenge;
-      const { minPace, maxPace } = rule;
-      let isValid = false;
-      if (activityMaxPace <= maxPace && activityMinPace >= minPace) {
-        isValid = true;
-      }
-      return { activityId: `${id}`, challengeId: challenge.id, userId, isValid };
-    });
-
-    await this.prisma.challengeActivity.createMany({
-      data: payload,
     });
 
     return activity;

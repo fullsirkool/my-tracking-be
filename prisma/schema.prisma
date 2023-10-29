@@ -11,25 +11,26 @@ datasource db {
 }
 
 model User {
-  id                 Int                 @id @unique @default(autoincrement())
-  stravaId           Int                 @unique @map(name: "strava_id")
-  firstName          String?             @map(name: "first_name")
-  lastName           String?             @map(name: "last_name")
-  bio                String?
-  city               String?
-  state              String?
-  country            String?
-  sex                String?
-  profileMedium      String?             @map("profile_medium")
-  profile            String?             @map(name: "profile_long")
-  stravaRefreshToken String?             @map(name: "strava_refresh_token")
-  refreshToken       String?             @map(name: "refresh_token")
-  tokenExpiresAt     String?             @map(name: "token_expires")
-  activities         Activity[]
-  challenges         Challenge[]
-  challengeUsers     ChallengeUser[]
-  dailyActivity      DailyActivity[]
-  challengeActivity  ChallengeActivity[]
+  id                     Int                      @id @unique @default(autoincrement())
+  stravaId               Int                      @unique @map(name: "strava_id")
+  firstName              String?                  @map(name: "first_name")
+  lastName               String?                  @map(name: "last_name")
+  bio                    String?
+  city                   String?
+  state                  String?
+  country                String?
+  sex                    String?
+  profileMedium          String?                  @map("profile_medium")
+  profile                String?                  @map(name: "profile_long")
+  stravaRefreshToken     String?                  @map(name: "strava_refresh_token")
+  refreshToken           String?                  @map(name: "refresh_token")
+  tokenExpiresAt         String?                  @map(name: "token_expires")
+  activities             Activity[]
+  challenges             Challenge[]
+  challengeUsers         ChallengeUser[]
+  dailyActivity          DailyActivity[]
+  challengeActivity      ChallengeActivity[]
+  challengeDailyActivity ChallengeDailyActivity[]
 
   @@map("user")
 }
@@ -77,20 +78,21 @@ model Admin {
 }
 
 model Challenge {
-  id                Int                 @id @unique @default(autoincrement())
-  title             String
-  startDate         DateTime            @map("start_date")
-  endDate           DateTime            @map("end_date")
-  ownerId           Int                 @map("owner_id")
-  code              String?             @unique @default(uuid())
-  image             String?
-  challengeType     ChallengeType       @default(ONE_VS_MANY) @map("challenge_type")
-  status            ChallengeStatus     @default(PUBLIC)
-  owner             User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  challengeGroups   ChallengeGroup[]
-  challengeUsers    ChallengeUser[]
-  rule              Rule?
-  challengeActivity ChallengeActivity[]
+  id                     Int                      @id @unique @default(autoincrement())
+  title                  String
+  startDate              DateTime                 @map("start_date")
+  endDate                DateTime                 @map("end_date")
+  ownerId                Int                      @map("owner_id")
+  code                   String?                  @unique @default(uuid())
+  image                  String?
+  challengeType          ChallengeType            @default(ONE_VS_MANY) @map("challenge_type")
+  status                 ChallengeStatus          @default(PUBLIC)
+  owner                  User                     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  challengeGroups        ChallengeGroup[]
+  challengeUsers         ChallengeUser[]
+  rule                   Rule?
+  challengeActivity      ChallengeActivity[]
+  challengeDailyActivity ChallengeDailyActivity[]
 
   @@map("challenge")
 }
@@ -141,6 +143,20 @@ model ChallengeActivity {
   activity    Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
   @@map("challenge_activity")
+}
+
+model ChallengeDailyActivity {
+  id Int @id @unique @default(autoincrement())
+  distance       Float
+  movingTime     Float     @map(name: "moving_time")
+  elapsedTime    Int       @map(name: "elapsed_time")
+  startDateLocal DateTime  @default(now()) @map(name: "start_date_local")
+  userId         Int       @map("user_id")
+  challengeId    Int       @map("challenge_id")
+  challenge      Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("challenge_daily_activity")
 }
 
 enum AdminStatus {

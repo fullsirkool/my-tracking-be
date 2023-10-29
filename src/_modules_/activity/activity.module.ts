@@ -4,9 +4,18 @@ import { HttpModule } from '@nestjs/axios';
 import { ActivityService } from './activity.service';
 import { AuthModule } from '../auth/auth.module';
 import { DailyActivtyModule } from '../daily-activty/daily-activty.module';
+import { QueueModule } from '../queue/queue.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
-  imports: [HttpModule, forwardRef(() => AuthModule), DailyActivtyModule],
+  imports: [
+    HttpModule,
+    forwardRef(() => AuthModule),
+    DailyActivtyModule,
+    BullModule.registerQueue({
+      name: 'activity',
+    }),
+  ],
   controllers: [ActivityController],
   providers: [ActivityService],
   exports: [ActivityService],
