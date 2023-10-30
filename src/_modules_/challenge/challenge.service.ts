@@ -116,6 +116,27 @@ export class ChallengeService {
               profile: true,
             },
           },
+          challengeUsers: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  stravaId: true,
+                  firstName: true,
+                  lastName: true,
+                  challengeDailyActivity: {
+                    select: {
+                      id: true,
+                      distance: true,
+                      elapsedTime: true,
+                      movingTime: true,
+                      startDateLocal: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       }),
       await this.prisma.challenge.count({}),
