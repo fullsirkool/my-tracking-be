@@ -173,7 +173,7 @@ export class ActivityService {
     );
 
     const res = await this.createActivity(owner.id, foundedActivity);
-    await this.dailyActivtyService.updateWebhookEvent(res);
+    
     return res;
   }
 

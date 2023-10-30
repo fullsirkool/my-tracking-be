@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
-import { ActivityTaskProcessor } from 'src/jobs/activity-task.job';
+import { ActivityTaskProcessor } from 'src/_modules_/queue/activity-task.job';
+import { DailyActivtyModule } from '../daily-activty/daily-activty.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ActivityTaskProcessor } from 'src/jobs/activity-task.job';
     BullModule.registerQueue({
       name: 'activity',
     }),
+    DailyActivtyModule
   ],
   providers: [ActivityTaskProcessor],
   exports: [BullModule],

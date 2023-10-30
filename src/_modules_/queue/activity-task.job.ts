@@ -1,14 +1,21 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { PrismaService } from '../_modules_/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { DailyActivtyService } from 'src/_modules_/daily-activty/daily-activty.service';
 
 @Processor('activity')
 export class ActivityTaskProcessor {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly dailyActivtyService: DailyActivtyService,
+  ) {}
 
   @Process('import')
   async handleActivityTask(job: Job) {
     const { userId, activity, splits_metric } = job.data;
+    
+    await this.dailyActivtyService.updateWebhookEvent(activity);
+
     const { id, distance, movingTime, elapsedTime, startDateLocal } = activity;
     let isValid = true;
     if (distance < 1000) {
