@@ -12,6 +12,7 @@ import { response } from 'express';
 import {
   ManualCreateActivityDto,
   FindMonthlyActivityDto,
+  FindActivityDto,
 } from './activity.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { ActivityTransformInterceptor } from 'src/interceptors/activity.transform';
@@ -66,5 +67,10 @@ export class ActivityController {
   // @UseInterceptors(ActivityTransformInterceptor)
   async findStatistics(@Param('stravaId') stravaId: number) {
     return await this.activityService.getTotalStatistics(+stravaId);
+  }
+
+  @Get()
+  async find(@Query() findActivityDto: FindActivityDto) {
+    return this.activityService.find(findActivityDto);
   }
 }

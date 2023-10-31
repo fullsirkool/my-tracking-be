@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Challenge, ChallengeStatus, ChallengeType } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsDateString, IsInt, IsNotEmpty, IsString, Matches } from 'class-validator';
-import { IsFloat, OptionalProperty } from 'src/decorators/validator.decorator';
+import { IsFloat, IsInterger, OptionalProperty } from 'src/decorators/validator.decorator';
 import { BasePagingDto } from 'src/types/base.types';
 
 export class CreateChallengeDto {
@@ -59,5 +59,13 @@ export class CreateChallengeCodeDto {
   challengeId: number;
 }
 
-export class FindChallengeDto extends BasePagingDto {}
+export class FindChallengeDto extends BasePagingDto {
+  @OptionalProperty()
+  @IsInterger
+  userId: number;
+  
+  @OptionalProperty()
+  @IsInterger
+  ownerId: number;
+}
 export class FindChallengeResponse extends BasePagingResponse<Challenge> {}

@@ -15,9 +15,12 @@ import {
   ManualCreateActivityDto,
   FindMonthlyActivityDto,
   CreateManyActivitiesDto,
+  FindActivityDto,
+  FindActivityResponse,
 } from './activity.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ActivityService {
@@ -29,6 +32,57 @@ export class ActivityService {
     private readonly dailyActivtyService: DailyActivtyService,
     @InjectQueue('activity') private readonly activityTaskQueue: Queue,
   ) {}
+
+  async find(findActivityDto: FindActivityDto): Promise<FindActivityResponse> {
+    const { page, size, date, stravaId } = findActivityDto;
+    const skip = (page - 1) * size;
+
+    const findActivityCondition: Prisma.ActivityWhereInput = {};
+
+    if (date) {
+      const requestDate = new Date(date);
+      const start = new Date(
+        requestDate.getFullYear(),
+        requestDate.getMonth(),
+        1,
+      );
+      const end = new Date(
+        requestDate.getFullYear(),
+        requestDate.getMonth() + 1,
+        0,
+      );
+
+      findActivityCondition.startDateLocal = {
+        lte: end,
+        gte: start,
+      };
+    }
+
+    if (stravaId) {
+      findActivityCondition.user = {
+        stravaId,
+      };
+    }
+
+    const [activities, count] = await Promise.all([
+      this.prisma.activity.findMany({
+        skip,
+        take: size,
+        where: findActivityCondition,
+      }),
+      this.prisma.activity.count({
+        where: findActivityCondition,
+      }),
+    ]);
+
+    return {
+      data: activities,
+      page,
+      size,
+      totalPages: Math.ceil(count / size) || 0,
+      totalElement: count,
+    };
+  }
 
   async findStravaActivity(id: number, token: string) {
     const activityUrl = `${process.env.STRAVA_BASE_URL}/activities/${id}`;

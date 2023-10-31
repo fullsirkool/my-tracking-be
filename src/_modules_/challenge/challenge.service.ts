@@ -100,8 +100,22 @@ export class ChallengeService {
   async find(
     findChallengeDto: FindChallengeDto,
   ): Promise<FindChallengeResponse> {
-    const { page, size } = findChallengeDto;
+    const { page, size, userId, ownerId } = findChallengeDto;
     const skip = (page - 1) * size;
+
+    const findChallengeCondition: Prisma.ChallengeWhereInput = {};
+
+    if (userId) {
+      findChallengeCondition.challengeUsers = {
+        every: {
+          userId,
+        },
+      };
+    }
+    if (ownerId) {
+      findChallengeCondition.ownerId = ownerId;
+    }
+
     const [challenges, count] = await Promise.all([
       this.prisma.challenge.findMany({
         take: size,
