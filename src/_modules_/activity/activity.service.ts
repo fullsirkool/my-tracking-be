@@ -34,7 +34,7 @@ export class ActivityService {
   ) {}
 
   async find(findActivityDto: FindActivityDto): Promise<FindActivityResponse> {
-    const { page, size, date, stravaId } = findActivityDto;
+    const { page, size, date, userId } = findActivityDto;
     const skip = (page - 1) * size;
 
     const findActivityCondition: Prisma.ActivityWhereInput = {};
@@ -58,10 +58,8 @@ export class ActivityService {
       };
     }
 
-    if (stravaId) {
-      findActivityCondition.user = {
-        stravaId,
-      };
+    if (userId) {
+      findActivityCondition.userId = userId;
     }
 
     const [activities, count] = await Promise.all([
