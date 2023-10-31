@@ -171,15 +171,6 @@ export class ActivityService {
     return res;
   }
 
-  async addTemp(title) {
-    await this.activityTaskQueue.add('add', {
-      data: {
-        title,
-      },
-    });
-    return {};
-  }
-
   async createActivity(userId, activityDto) {
     const {
       id,
@@ -226,15 +217,7 @@ export class ActivityService {
     });
 
     // Add Challenge Activity //
-    // await this.activityTaskQueue.add('import', {
-    //   data: {
-    //     userId,
-    //     activity,
-    //     splits_metric,
-    //   },
-    // });
-
-    await this.handleCreateActivity({
+    await this.activityTaskQueue.add('import', {
       userId,
       activity,
       splits_metric,
@@ -243,7 +226,7 @@ export class ActivityService {
     return activity;
   }
 
-  async handleCreateActivity(data) {
+  async importActivityStatistic(data) {
     const { userId, activity, splits_metric } = data;
 
     const dailyActivity = await this.dailyActivtyService.updateWebhookEvent(

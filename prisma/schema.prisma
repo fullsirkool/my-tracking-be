@@ -160,13 +160,6 @@ model ChallengeDailyActivity {
   @@map("challenge_daily_activity")
 }
 
-model Temp {
-  id    Int     @id @unique @default(autoincrement())
-  title String?
-
-  @@map("temp")
-}
-
 enum AdminStatus {
   ACTIVE
   INACTIVE
