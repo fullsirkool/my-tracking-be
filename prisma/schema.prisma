@@ -36,21 +36,21 @@ model User {
 }
 
 model Activity {
-  id                 String             @id @unique
-  userId             Int                @map(name: "user_id")
+  id                 String              @id @unique
+  userId             Int                 @map(name: "user_id")
   name               String
   distance           Float
-  movingTime         Float              @map(name: "moving_time")
-  elapsedTime        Int                @map(name: "elapsed_time")
-  totalElevationGain Float              @map(name: "total_elevation_gain")
+  movingTime         Float               @map(name: "moving_time")
+  elapsedTime        Int                 @map(name: "elapsed_time")
+  totalElevationGain Float               @map(name: "total_elevation_gain")
   type               String
-  startDate          DateTime           @default(now()) @map(name: "start_date")
-  startDateLocal     DateTime           @default(now()) @map(name: "start_date_local")
+  startDate          DateTime            @default(now()) @map(name: "start_date")
+  startDateLocal     DateTime            @default(now()) @map(name: "start_date_local")
   visibility         String
-  averageSpeed       Float              @map(name: "average_speed")
-  maxSpeed           Float              @map(name: "max_speed")
-  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  challengeActivity  ChallengeActivity?
+  averageSpeed       Float               @map(name: "average_speed")
+  maxSpeed           Float               @map(name: "max_speed")
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeActivity  ChallengeActivity[]
 
   @@map("activity")
 }
@@ -134,7 +134,8 @@ model ChallengeUser {
 }
 
 model ChallengeActivity {
-  activityId  String    @id @unique @map("activity_id")
+  id          Int       @id @unique @default(autoincrement())
+  activityId  String    @map("activity_id")
   userId      Int       @map("user_id")
   challengeId Int       @map("challenge_id")
   isValid     Boolean   @map("is_valid")
@@ -146,7 +147,7 @@ model ChallengeActivity {
 }
 
 model ChallengeDailyActivity {
-  id Int @id @unique @default(autoincrement())
+  id             Int       @id @unique @default(autoincrement())
   distance       Float
   movingTime     Float     @map(name: "moving_time")
   elapsedTime    Int       @map(name: "elapsed_time")
@@ -157,6 +158,13 @@ model ChallengeDailyActivity {
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("challenge_daily_activity")
+}
+
+model Temp {
+  id    Int     @id @unique @default(autoincrement())
+  title String?
+
+  @@map("temp")
 }
 
 enum AdminStatus {

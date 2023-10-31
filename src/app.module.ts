@@ -13,7 +13,6 @@ import { ChallengeGroupModule } from './_modules_/challenge-group/challenge-grou
 import { ChallengeUserModule } from './_modules_/challenge-user/challenge-user.module';
 import { FileModule } from './_modules_/file/file.module';
 import { FirebaseModule } from './_modules_/firebase/firebase.module';
-import { QueueModule } from './_modules_/queue/queue.module';
 import { BullModule } from '@nestjs/bull';
 
 @Module({
@@ -33,8 +32,8 @@ import { BullModule } from '@nestjs/bull';
     BullModule.forRoot({
       redis: {
         host: 'localhost',
-        port: 6379
-      }
+        port: 6379,
+      },
     }),
   ],
   controllers: [AppController],

@@ -67,4 +67,9 @@ export class ActivityController {
   async findStatistics(@Param('stravaId') stravaId: number) {
     return await this.activityService.getTotalStatistics(+stravaId);
   }
+
+  @Post('/temp')
+  async addTemp(@Query('title') title: string) {
+    return await this.activityService.addTemp(title);
+  }
 }
