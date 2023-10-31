@@ -7,6 +7,9 @@ export class DailyActivtyService {
   constructor(private readonly prisma: PrismaService) {}
 
   async updateWebhookEvent(activity: Activity) {
+    if (!activity) {
+      return;
+    }
     const { distance, movingTime, elapsedTime, startDateLocal, userId } =
       activity;
     const findDate = new Date(startDateLocal);
@@ -104,8 +107,7 @@ export class DailyActivtyService {
     const timeValueMap = {};
 
     cloneActivties.forEach((item) => {
-      const { distance, movingTime, elapsedTime, startDateLocal } =
-        item;
+      const { distance, movingTime, elapsedTime, startDateLocal } = item;
 
       const timeString = startDateLocal.toISOString();
       if (timeValueMap[timeString]) {

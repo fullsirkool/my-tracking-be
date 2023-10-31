@@ -107,7 +107,7 @@ export class ChallengeService {
 
     if (userId) {
       findChallengeCondition.challengeUsers = {
-        every: {
+        some: {
           userId,
         },
       };
@@ -120,6 +120,7 @@ export class ChallengeService {
       this.prisma.challenge.findMany({
         take: size,
         skip,
+        where: findChallengeCondition,
         include: {
           owner: {
             select: {
@@ -130,30 +131,30 @@ export class ChallengeService {
               profile: true,
             },
           },
-          challengeUsers: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  stravaId: true,
-                  firstName: true,
-                  lastName: true,
-                  challengeDailyActivity: {
-                    select: {
-                      id: true,
-                      distance: true,
-                      elapsedTime: true,
-                      movingTime: true,
-                      startDateLocal: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
+          // challengeUsers: {
+          //   include: {
+          //     user: {
+          //       select: {
+          //         id: true,
+          //         stravaId: true,
+          //         firstName: true,
+          //         lastName: true,
+          //         challengeDailyActivity: {
+          //           select: {
+          //             id: true,
+          //             distance: true,
+          //             elapsedTime: true,
+          //             movingTime: true,
+          //             startDateLocal: true,
+          //           },
+          //         },
+          //       },
+          //     },
+          //   },
+          // },
         },
       }),
-      await this.prisma.challenge.count({}),
+      await this.prisma.challenge.count({ where: findChallengeCondition }),
     ]);
     return {
       data: challenges,
