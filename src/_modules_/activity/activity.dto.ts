@@ -46,7 +46,7 @@ export class FindActivityDto extends BasePagingDto {
 
   @ApiProperty()
   @IsInterger
-  userId: number;
+  stravaId: number;
 }
 
 export class FindActivityResponse extends BasePagingResponse<Activity> {}
