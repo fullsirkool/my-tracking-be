@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   NotAcceptableException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -192,6 +193,10 @@ export class ChallengeService {
         },
       },
     });
+
+    if (!challenge) {
+      throw new NotFoundException('Not found challenge!');
+    }
 
     const { challengeActivity } = challenge;
 
