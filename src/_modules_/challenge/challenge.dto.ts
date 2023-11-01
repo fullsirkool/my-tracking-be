@@ -90,12 +90,12 @@ export class FindChallengeDto extends BasePagingDto {
 export class FindChallengeResponse extends BasePagingResponse<Challenge> {}
 
 export interface ChallengeDetailDto extends Challenge {
-  userActivitites: Array<{ user: User }>;
+  userActivitites: ChallengeUserActivities[];
 }
 
 export class ChallengeUserActivities {
   user: User;
-  statistics: ActivityStatistics;
+  statistics: ActivityStatistics[];
 }
 
 export class ActivityStatistics {
