@@ -470,7 +470,6 @@ export class ActivityService {
         isValid: true,
       };
     });
-    console.log('payload', payload);
     const activities = await this.prisma.activity.createMany({
       data: payload,
     });

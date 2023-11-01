@@ -27,6 +27,10 @@ export class CreateChallengeDto {
   ruleTitle: string;
 
   @OptionalProperty()
+  @IsFloat
+  target: number;
+
+  @OptionalProperty()
   @IsString()
   minPace: string;
 

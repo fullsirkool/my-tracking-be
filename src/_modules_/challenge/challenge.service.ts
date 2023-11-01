@@ -26,14 +26,13 @@ export class ChallengeService {
       status,
       image,
       ruleTitle,
+      target,
       minPace,
       maxPace,
       minDistance,
       maxDistance,
       challengeType,
     } = createChallengeDto;
-
-    console.log('createChallengeDto', createChallengeDto);
 
     const createChallengePayload: Prisma.ChallengeCreateInput = {
       title,
@@ -88,8 +87,9 @@ export class ChallengeService {
     if (ruleTitle) {
       createChallengePayload.rule.create.title = ruleTitle;
     }
-
-    console.log('createChallengePayload', createChallengePayload);
+    if (target) {
+      createChallengePayload.rule.create.target = target;
+    }
 
     const challenge = await this.prisma.challenge.create({
       data: createChallengePayload,
