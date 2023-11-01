@@ -1,9 +1,24 @@
 import { BasePagingResponse } from './../../types/base.types';
 import { ApiProperty } from '@nestjs/swagger';
-import { Challenge, ChallengeStatus, ChallengeType } from '@prisma/client';
+import {
+  Challenge,
+  ChallengeStatus,
+  ChallengeType,
+  User,
+} from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsDateString, IsInt, IsNotEmpty, IsString, Matches } from 'class-validator';
-import { IsFloat, IsInterger, OptionalProperty } from 'src/decorators/validator.decorator';
+import {
+  IsDateString,
+  IsInt,
+  IsNotEmpty,
+  IsString,
+  Matches,
+} from 'class-validator';
+import {
+  IsFloat,
+  IsInterger,
+  OptionalProperty,
+} from 'src/decorators/validator.decorator';
 import { BasePagingDto } from 'src/types/base.types';
 
 export class CreateChallengeDto {
@@ -67,9 +82,25 @@ export class FindChallengeDto extends BasePagingDto {
   @OptionalProperty()
   @IsInterger
   userId: number;
-  
+
   @OptionalProperty()
   @IsInterger
   ownerId: number;
 }
 export class FindChallengeResponse extends BasePagingResponse<Challenge> {}
+
+export interface ChallengeDetailDto extends Challenge {
+  userActivitites: Array<{ user: User }>;
+}
+
+export class ChallengeUserActivities {
+  user: User;
+  statistics: ActivityStatistics;
+}
+
+export class ActivityStatistics {
+  distance: number;
+  movingTime: number;
+  elapsedTime: number;
+  startDateLocal: Date;
+}

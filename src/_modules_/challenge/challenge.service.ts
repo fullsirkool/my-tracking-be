@@ -5,11 +5,19 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+  ChallengeDetailDto,
+  ChallengeUserActivities,
   CreateChallengeDto,
   FindChallengeDto,
   FindChallengeResponse,
 } from './challenge.dto';
-import { Prisma, Challenge, ChallengeUser } from '@prisma/client';
+import {
+  Prisma,
+  Challenge,
+  ChallengeUser,
+  User,
+  Activity,
+} from '@prisma/client';
 
 @Injectable()
 export class ChallengeService {
@@ -131,27 +139,6 @@ export class ChallengeService {
               profile: true,
             },
           },
-          // challengeUsers: {
-          //   include: {
-          //     user: {
-          //       select: {
-          //         id: true,
-          //         stravaId: true,
-          //         firstName: true,
-          //         lastName: true,
-          //         challengeDailyActivity: {
-          //           select: {
-          //             id: true,
-          //             distance: true,
-          //             elapsedTime: true,
-          //             movingTime: true,
-          //             startDateLocal: true,
-          //           },
-          //         },
-          //       },
-          //     },
-          //   },
-          // },
         },
       }),
       await this.prisma.challenge.count({ where: findChallengeCondition }),
@@ -165,7 +152,7 @@ export class ChallengeService {
     };
   }
 
-  async findOne(id: number): Promise<Challenge> {
+  async findOne(id: number) {
     const challenge = await this.prisma.challenge.findUnique({
       where: {
         id,
@@ -180,6 +167,7 @@ export class ChallengeService {
             profile: true,
           },
         },
+        rule: true,
         challengeActivity: {
           select: {
             activity: true,
@@ -196,11 +184,68 @@ export class ChallengeService {
           where: {
             isValid: true,
           },
+          orderBy: {
+            activity: {
+              startDateLocal: 'asc',
+            },
+          },
         },
       },
     });
 
-    return challenge;
+    const { challengeActivity } = challenge;
+
+    const userActivitites = this.myFunction(challengeActivity);
+    const result = { ...challenge, userActivitites: userActivitites };
+    delete result.challengeActivity;
+    return result;
+  }
+
+  private myFunction(challengeActivity) {
+    const groupedData = {};
+
+    challengeActivity.forEach((activity) => {
+      const userId = activity.user.id;
+      const startDateString = new Date(
+        activity.activity.startDateLocal,
+      ).toISOString();
+      const startDateLocal = startDateString.split('T')[0]; // Extract the date part
+
+      if (!groupedData[userId]) {
+        // Initialize a new entry for the user
+        groupedData[userId] = {
+          user: activity.user,
+          statistics: {},
+        };
+      }
+
+      if (!groupedData[userId].statistics[startDateLocal]) {
+        // Initialize a new entry for the date
+        groupedData[userId].statistics[startDateLocal] = {
+          elapsedTime: 0,
+          distance: 0,
+          movingTime: 0,
+          startDateLocal: new Date(startDateLocal),
+        };
+      }
+
+      // Update the sums for the date
+      groupedData[userId].statistics[startDateLocal].elapsedTime +=
+        activity.activity.elapsedTime;
+      groupedData[userId].statistics[startDateLocal].distance +=
+        activity.activity.distance;
+      groupedData[userId].statistics[startDateLocal].movingTime +=
+        activity.activity.movingTime;
+    });
+
+    // Convert the grouped data object into an array
+    const transformedData = Object.values(groupedData).map(
+      (entry: { user: User; statistics: Array<{ activity: Activity }> }) => ({
+        user: entry.user,
+        statistics: Object.values(entry.statistics),
+      }),
+    );
+    return transformedData;
   }
 
   async getChallengeCode(challengeId: number): Promise<string> {
