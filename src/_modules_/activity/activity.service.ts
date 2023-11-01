@@ -69,6 +69,9 @@ export class ActivityService {
         skip,
         take: size,
         where: findActivityCondition,
+        orderBy: {
+          startDateLocal: 'desc',
+        },
       }),
       this.prisma.activity.count({
         where: findActivityCondition,
