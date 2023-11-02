@@ -43,6 +43,11 @@ export class ChallengeService {
       challengeType,
     } = createChallengeDto;
 
+    const startDateInput = new Date(startDate);
+    startDateInput.setHours(0, 0, 0, 0);
+    const endDateInput = new Date(endDate);
+    endDateInput.setHours(24, 0, 0, 0);
+
     const createChallengePayload: Prisma.ChallengeCreateInput = {
       title,
       startDate,
@@ -97,7 +102,7 @@ export class ChallengeService {
       createChallengePayload.rule.create.title = ruleTitle;
     }
     if (target) {
-      createChallengePayload.rule.create.target = target;
+      createChallengePayload.rule.create.target = target * 1000;
     }
 
     const challenge = await this.prisma.challenge.create({
@@ -169,6 +174,24 @@ export class ChallengeService {
           },
         },
         rule: true,
+        // challengeDailyActivity: {
+        //   select: {
+        //     id: true,
+        //     distance: true,
+        //     elapsedTime: true,
+        //     movingTime: true,
+        //     startDateLocal: true,
+        //     user: {
+        //       select: {
+        //         id: true,
+        //         stravaId: true,
+        //         firstName: true,
+        //         lastName: true,
+        //         profile: true,
+        //       },
+        //     },
+        //   },
+        // },
         challengeActivity: {
           select: {
             activity: true,
