@@ -50,8 +50,8 @@ export class ChallengeService {
 
     const createChallengePayload: Prisma.ChallengeCreateInput = {
       title,
-      startDate,
-      endDate,
+      startDate: startDateInput,
+      endDate: endDateInput,
       owner: {
         connect: {
           id: ownerId,
