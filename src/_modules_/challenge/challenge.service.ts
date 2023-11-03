@@ -223,13 +223,14 @@ export class ChallengeService {
 
     const { challengeActivity } = challenge;
 
-    const userActivitites = this.myFunction(challengeActivity);
+    const userActivitites =
+      this.transformActivityToStatistics(challengeActivity);
     const result = { ...challenge, userActivitites: userActivitites };
     delete result.challengeActivity;
     return result;
   }
 
-  private myFunction(challengeActivity) {
+  private transformActivityToStatistics(challengeActivity) {
     const groupedData = {};
 
     challengeActivity.forEach((activity) => {
@@ -276,6 +277,32 @@ export class ChallengeService {
     return transformedData;
   }
 
+  async findUserForChallege(id: number) {
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profile: true,
+        stravaId: true,
+        challengeActivity: {
+          where: {
+            challengeId: id,
+          },
+        },
+      },
+      where: {
+        challengeActivity: {
+          some: {
+            challengeId: id,
+          },
+        },
+      },
+    });
+
+    return users;
+  }
+
   async getChallengeCode(challengeId: number): Promise<string> {
     const challenge = await this.prisma.challenge.findUnique({
       where: { id: challengeId },
@@ -298,7 +325,7 @@ export class ChallengeService {
       },
     });
 
-    if (createdChallengeUser.id) {
+    if (createdChallengeUser) {
       throw new ConflictException('User has joined this challenge!');
     }
 

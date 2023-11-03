@@ -47,4 +47,9 @@ export class ChallengeController {
   async findOne(@Param('id') id: number): Promise<Challenge> {
     return await this.challengeService.findOne(+id);
   }
+
+  @Get('/:id/user')
+  async findUserForChallege(@Param('id') id: number) {
+    return await this.challengeService.findUserForChallege(id);
+  }
 }
