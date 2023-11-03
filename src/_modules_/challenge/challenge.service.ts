@@ -285,7 +285,7 @@ export class ChallengeService {
         lastName: true,
         profile: true,
         stravaId: true,
-        challengeActivity: {
+        challengeDailyActivity: {
           where: {
             challengeId: id,
           },
