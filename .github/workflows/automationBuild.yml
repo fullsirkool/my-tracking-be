@@ -1,0 +1,41 @@
+name: Node.js CI/CD
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+    - uses: actions/checkout@v3 
+    - uses: actions/setup-node@v3
+    - name: Setup environment
+      run: |
+        npm install pm2@latest -g
+        pm2 -V 
+        pm2 list
+    - name: Install dependencies
+      run: npm install
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh/
+        echo "$SSH_PRIVATE_KEY" > ./deploy.key
+        sudo chmod 600 ./deploy.key
+        echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      shell: bash
+      env:
+        SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
+        SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
+    - name: Create env file
+      run: |
+        touch .env
+        echo DATABASE_ADDRESS=${{ secrets.DATABASE_ADDRESS }} >> .env
+    - name: Build
+      run: npm run build
