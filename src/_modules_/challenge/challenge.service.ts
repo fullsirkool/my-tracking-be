@@ -292,7 +292,7 @@ export class ChallengeService {
         },
       },
       where: {
-        challengeActivity: {
+        challengeUsers: {
           some: {
             challengeId: id,
           },
