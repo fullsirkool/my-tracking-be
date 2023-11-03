@@ -329,7 +329,17 @@ export class ChallengeService {
       throw new ConflictException('User has joined this challenge!');
     }
 
-    if (createdChallengeUser.challenge.challengeType === 'ONE_VS_ONE') {
+    const challenge = await this.prisma.challenge.findUnique({
+      where: {
+        id: challengeId,
+      },
+    });
+
+    if (!challenge) {
+      throw new NotFoundException('Not Found Challenge!');
+    }
+
+    if (challenge.challengeType === 'ONE_VS_ONE') {
       const count = await this.prisma.challengeUser.count({
         where: {
           challengeId,
