@@ -384,8 +384,8 @@ export class ActivityService {
         const { challengeId, userId, isValid } = item;
         return {
           distance: isValid ? distance : 0,
-          movingTime: isValid ? distance : 0,
-          elapsedTime: isValid ? distance : 0,
+          movingTime: isValid ? movingTime : 0,
+          elapsedTime: isValid ? elapsedTime : 0,
           startDateLocal: findDate,
           userId,
           challengeId,
