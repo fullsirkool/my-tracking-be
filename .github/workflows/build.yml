@@ -28,16 +28,8 @@ jobs:
     needs: build
     name: Deploy to EC2
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
       - name: Build & Deploy
         env:
           PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -47,6 +39,5 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i keypair.pem ${HOSTNAME} '
           cd my-tracking-be
           git checkout master && git pull
-          node -v
           yarn
           '
