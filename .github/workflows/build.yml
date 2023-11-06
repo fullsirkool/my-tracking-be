@@ -1,0 +1,47 @@
+name: Demo CICD
+
+on:
+  push:
+    branches: ['master']
+  pull_request:
+    branches: ['master']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm test
+
+  deployment:
+    needs: build
+
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build & Deploy
+        env:
+          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOSTNAME: ${{secrets.SSH_HOST}}
+        run: |
+          echo "$PRIVATE_KEY" > keypair.pem && chmod 600 keypair.pem
+          ssh -o StrictHostKeyChecking=no -i keypair.pem ${HOSTNAME} '
+          cd my-tracking-be
+          git checkout master && git pull && yarn
+          yarn pm2:stop:app
+          yarn pm2:deploy:app
+          '
