@@ -42,6 +42,6 @@ jobs:
           echo "$PRIVATE_KEY" > keypair.pem && chmod 600 keypair.pem
           ssh -o StrictHostKeyChecking=no -i keypair.pem ${HOSTNAME} '
           cd my-tracking-be
-          git checkout master && git pull && yarn
-          yarn pm2:deploy:app
+          git checkout master && git pull && npm install
+          npm run pm2:deploy:app
           '
