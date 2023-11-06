@@ -2,7 +2,7 @@ name: Node.js CI/CD
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
     branches: [master]
     types:
@@ -22,8 +22,5 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
       - run: git fetch
-      - run: git checkout master
       - run: git pull
-      - run: git branch -a
-      # - run: yarn pm2:deploy:app
-
+      - run: yarn pm2:deploy:app
