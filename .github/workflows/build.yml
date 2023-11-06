@@ -30,14 +30,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build & Deploy
-        env:
-          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          HOSTNAME: ${{secrets.SSH_HOST}}
-        run: |
-          echo "$PRIVATE_KEY" > keypair.pem && chmod 600 keypair.pem
-          ssh -o StrictHostKeyChecking=no -i keypair.pem ${HOSTNAME} '
-          cd my-tracking-be
-          git checkout master && git pull
-          yarn
-          '
+
+      - name: Execute SSH commmands on remote server
+        uses: JimCronqvist/action-ssh@master
+        with:
+          hosts: ${{ secrets.SSH_HOST }}
+          privateKey: ${{ secrets.PRIVATE_KEY }}
+          command: |
+            cd my-tracking-be
+            git checkout master && git pull
+            yarn
+            '
