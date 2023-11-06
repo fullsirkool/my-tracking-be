@@ -5,8 +5,8 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
-    # types:
-    #   - closed
+    types:
+      - closed
 
 jobs:
   build:
@@ -22,6 +22,5 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
       - run: git fetch
-      - run: git checkout ci/implement-automation-build
       - run: git pull
       - run: yarn pm2:deploy:app
