@@ -34,7 +34,7 @@ jobs:
         uses: JimCronqvist/action-ssh@master
         with:
           hosts: ${{ secrets.SSH_HOST }}
-          privateKey: ${{ secrets.PRIVATE_KEY }}
+          privateKey: ${{ secrets.SSH_PRIVATE_KEY }}
           command: |
             cd my-tracking-be
             git checkout master && git pull
