@@ -36,6 +36,4 @@ jobs:
           hosts: ${{ secrets.SSH_HOST }}
           privateKey: ${{ secrets.SSH_PRIVATE_KEY }}
           command: |
-            cd my-tracking-be
-            git checkout master && git pull
-            yarn
+            bash deploy.sh
