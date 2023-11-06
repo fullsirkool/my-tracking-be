@@ -4,7 +4,9 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [master]
+    types:
+      - closed
 
 jobs:
   build:
@@ -22,5 +24,6 @@ jobs:
       - run: git fetch
       - run: git checkout master
       - run: git pull
-      - run: yarn pm2:deploy:app
+      - run: git branch -a
+      # - run: yarn pm2:deploy:app
 
