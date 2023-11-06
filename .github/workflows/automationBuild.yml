@@ -22,5 +22,5 @@ jobs:
       - run: git fetch
       - run: git checkout master
       - run: git pull
-      # - run: yarn pm2:deploy:app
+      - run: yarn pm2:deploy:app
 
