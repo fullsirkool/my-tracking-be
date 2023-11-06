@@ -47,5 +47,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i keypair.pem ${HOSTNAME} '
           cd my-tracking-be
           git checkout master && git pull
+          node -v
           yarn
           '
