@@ -30,7 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Execute SSH commmands on remote server
         uses: JimCronqvist/action-ssh@master
         with:
