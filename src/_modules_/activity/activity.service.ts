@@ -285,6 +285,9 @@ export class ActivityService {
 
   async importActivityStatistic(data) {
     const { userId, activity, splits_metric } = data;
+    if (!activity) {
+      return;
+    }
 
     const dailyActivity = await this.dailyActivtyService.updateWebhookEvent(
       activity,
@@ -381,11 +384,12 @@ export class ActivityService {
 
     if (!dailyChallengeActivities.length) {
       const challengeDailyActivityPayload = challengeActivities.map((item) => {
-        const { challengeId, userId, isValid } = item;
+        const { challengeId, userId } = item;
+        const validActivity = item.isValid;
         return {
-          distance: isValid ? distance : 0,
-          movingTime: isValid ? distance : 0,
-          elapsedTime: isValid ? distance : 0,
+          distance: validActivity ? distance : 0,
+          movingTime: validActivity ? movingTime : 0,
+          elapsedTime: validActivity ? elapsedTime : 0,
           startDateLocal: findDate,
           userId,
           challengeId,
@@ -399,12 +403,14 @@ export class ActivityService {
     const challengeDailyActivityPayload = dailyChallengeActivities.map(
       (item, index) => {
         const challenge = challengeActivities[index];
-        challenge.isValid;
+        const isValidChallenge = challenge.isValid;
         const { challengeId, userId } = item;
         return {
-          distance: isValid ? distance + item.distance : item.distance,
-          movingTime: isValid ? movingTime + item.movingTime : item.movingTime,
-          elapsedTime: isValid
+          distance: isValidChallenge ? distance + item.distance : item.distance,
+          movingTime: isValidChallenge
+            ? movingTime + item.movingTime
+            : item.movingTime,
+          elapsedTime: isValidChallenge
             ? elapsedTime + item.elapsedTime
             : item.elapsedTime,
           startDateLocal: findDate,
