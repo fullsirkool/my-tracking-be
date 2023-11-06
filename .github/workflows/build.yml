@@ -39,4 +39,3 @@ jobs:
             cd my-tracking-be
             git checkout master && git pull
             yarn
-            '
