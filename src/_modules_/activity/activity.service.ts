@@ -343,8 +343,18 @@ export class ActivityService {
     const challengeActivities = challenges.map((element) => {
       const { challenge } = element;
       const { rule } = challenge;
-      const { minPace, maxPace } = rule;
+      const { minPace, maxPace, minDistance, maxDistance } = rule;
       let isValid = true;
+      if (minDistance) {
+        if (distance < minDistance) {
+          isValid = false;
+        }
+      }
+      if (maxDistance) {
+        if (distance > maxDistance) {
+          isValid = false;
+        }
+      }
       if (maxPace) {
         if (activityMaxPace > maxPace) {
           isValid = false;
