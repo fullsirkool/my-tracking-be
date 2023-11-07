@@ -1,4 +1,4 @@
-name: Demo CICD
+name: Ci/CD My tracking
 
 on:
   push:
@@ -16,43 +16,24 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Buil and Test
+        uses: actions/setup-node@v3
         with:
-          node-version: 18.18.2
+          node-version: ${{ matrix.node-version }}
           cache: 'yarn'
-      - name: Clear Node.js cache
-        run: yarn cache clean        
-      - name: Deployment
+      - run: yarn install
+
+  deployment:
+    runs-on: ubuntu-latest
+    needs: build
+    name: Deploy to EC2
+    steps:
+      - uses: actions/checkout@v3
+      - name: Execute SSH commmands on remote server
         run: |
             echo "${{ secrets.SSH_PRIVATE_KEY }}" > keypair.pem && chmod 600 keypair.pem
             ssh -o StrictHostKeyChecking=no -i keypair.pem ${{ secrets.SSH_HOST }} '
             lsb_release -a
-            # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-            # export NVM_DIR="$HOME/.nvm"
             source ~/.nvm/nvm.sh
-            # nvm install v18.18.2
             node -v
             '
-
-  # deployment:
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   name: Deploy to EC2
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Execute SSH commmands on remote server
-    
-  #       run: |
-  #           echo "${{ secrets.SSH_PRIVATE_KEY }}" > keypair.pem && chmod 600 keypair.pem
-  #           ssh -o StrictHostKeyChecking=no -i keypair.pem ${{ secrets.SSH_HOST }} '
-  #           lsb_release -a
-  #           node -v
-            
-  #           '
-        # uses: JimCronqvist/action-ssh@master
-        # with:
-        #   hosts: ${{ secrets.SSH_HOST }}
-        #   privateKey: ${{ secrets.SSH_PRIVATE_KEY }}
-        #   command: |
-        #     cd my-tracking-be/
-        #     yarn install
