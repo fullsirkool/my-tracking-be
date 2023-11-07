@@ -27,10 +27,10 @@ jobs:
             echo "${{ secrets.SSH_PRIVATE_KEY }}" > keypair.pem && chmod 600 keypair.pem
             ssh -o StrictHostKeyChecking=no -i keypair.pem ${{ secrets.SSH_HOST }} '
             lsb_release -a
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-            export NVM_DIR="$HOME/.nvm"
+            # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+            # export NVM_DIR="$HOME/.nvm"
             source ~/.nvm/nvm.sh
-            nvm install v18.18.2
+            # nvm install v18.18.2
             node -v
             '
 
