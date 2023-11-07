@@ -33,8 +33,6 @@ jobs:
         run: |
             echo "${{ secrets.SSH_PRIVATE_KEY }}" > keypair.pem && chmod 600 keypair.pem
             ssh -o StrictHostKeyChecking=no -i keypair.pem ${{ secrets.SSH_HOST }} '
-            source ~/.nvm/nvm.sh
-            node -v
-            cd my-tracking-be/
-            yarn install
+            source ~/.nvm/nvm.sh && node -v
+            bash deploy.sh
             '
