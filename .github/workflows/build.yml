@@ -28,6 +28,7 @@ jobs:
             ssh -o StrictHostKeyChecking=no -i keypair.pem ${{ secrets.SSH_HOST }} '
             lsb_release -a
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+            export NVM_DIR="$HOME/.nvm"
             nvm install v18.18.2
             node -v
             '
