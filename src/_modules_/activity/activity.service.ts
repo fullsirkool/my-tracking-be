@@ -344,9 +344,16 @@ export class ActivityService {
       const { challenge } = element;
       const { rule } = challenge;
       const { minPace, maxPace } = rule;
-      let isValid = false;
-      if (activityMaxPace <= maxPace && activityMinPace >= minPace) {
-        isValid = true;
+      let isValid = true;
+      if (maxPace) {
+        if (activityMaxPace > maxPace) {
+          isValid = false;
+        }
+      }
+      if (minPace) {
+        if (activityMinPace < minPace) {
+          isValid = false;
+        }
       }
       return {
         activityId: `${id}`,
