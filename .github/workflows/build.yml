@@ -37,6 +37,7 @@ jobs:
             ssh -o StrictHostKeyChecking=no -i keypair.pem ${{ secrets.SSH_HOST }} '
             lsb_release -a
             node -v
+            cat /etc/os-release
             '
         # uses: JimCronqvist/action-ssh@master
         # with:
