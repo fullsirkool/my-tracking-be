@@ -146,6 +146,9 @@ export class ChallengeService {
             },
           },
         },
+        orderBy: {
+          startDate: 'desc',
+        },
       }),
       await this.prisma.challenge.count({ where: findChallengeCondition }),
     ]);
