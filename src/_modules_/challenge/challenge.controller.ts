@@ -9,6 +9,7 @@ import {
 } from './challenge.dto';
 import { Auth } from 'src/decorators/auth.decorator';
 import { Challenge } from '@prisma/client';
+import { BasePagingDto } from 'src/types/base.types';
 
 @Controller('challenge')
 @ApiTags('challenge')
@@ -51,5 +52,27 @@ export class ChallengeController {
   @Get('/:id/user')
   async findUserForChallege(@Param('id') id: number) {
     return await this.challengeService.findUserForChallege(id);
+  }
+
+  @Get('/user/joined/:stravaId')
+  async findJoinedChallengesByUser(
+    @Param('stravaId') stravaId: number,
+    @Query() pagination: BasePagingDto,
+  ) {
+    return await this.challengeService.findJoinedChallengesByUser(
+      stravaId,
+      pagination,
+    );
+  }
+
+  @Get('/user/created/:stravaId')
+  async findCreatedChallengesByUser(
+    @Param('stravaId') stravaId: number,
+    @Query() pagination: BasePagingDto,
+  ) {
+    return await this.challengeService.findCreatedChallengesByUser(
+      stravaId,
+      pagination,
+    );
   }
 }
