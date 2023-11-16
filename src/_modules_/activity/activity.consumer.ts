@@ -9,6 +9,6 @@ export class ActivityConsumer {
 
   @Process(ActivityJobs.import)
   async handleCreateActivity({ data }: Job) {
-    this.activityService.importActivityStatistic(data);
+    return this.activityService.importActivityStatistic(data);
   }
 }
