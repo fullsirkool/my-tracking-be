@@ -4,22 +4,21 @@ import {
   NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  Activity,
+  Challenge,
+  ChallengeUser,
+  Prisma,
+  User,
+} from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  ChallengeDetailDto,
-  ChallengeUserActivities,
   CreateChallengeDto,
   FindChallengeDto,
   FindChallengeResponse,
 } from './challenge.dto';
-import {
-  Prisma,
-  Challenge,
-  ChallengeUser,
-  User,
-  Activity,
-} from '@prisma/client';
-
+import { BasePagingDto, BasePagingResponse } from 'src/types/base.types';
+import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
 @Injectable()
 export class ChallengeService {
   constructor(private readonly prisma: PrismaService) {}
@@ -153,11 +152,8 @@ export class ChallengeService {
       await this.prisma.challenge.count({ where: findChallengeCondition }),
     ]);
     return {
+      ...getDefaultPaginationReponse(findChallengeDto, count),
       data: challenges,
-      page,
-      size,
-      totalPages: Math.ceil(count / size) || 0,
-      totalElement: count,
     };
   }
 
@@ -368,5 +364,83 @@ export class ChallengeService {
         },
       },
     });
+  }
+
+  async findJoinedChallengesByUser(
+    stravaId: number,
+    pagination: BasePagingDto,
+  ): Promise<BasePagingResponse<Challenge>> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        stravaId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Not found user!');
+    }
+
+    const { page, size } = pagination;
+    const skip = (page - 1) * size;
+
+    const findConditions: Prisma.ChallengeWhereInput = {
+      challengeUsers: {
+        some: {
+          userId: user.id,
+        },
+      },
+    };
+    const [challenges, count] = await Promise.all([
+      this.prisma.challenge.findMany({
+        take: size,
+        skip,
+        where: findConditions,
+        orderBy: {
+          startDate: 'desc',
+        },
+      }),
+      this.prisma.challenge.count({ where: findConditions }),
+    ]);
+
+    return {
+      ...getDefaultPaginationReponse(pagination, count),
+      data: challenges,
+    };
+  }
+
+  async findCreatedChallengesByUser(
+    stravaId: number,
+    pagination: BasePagingDto,
+  ): Promise<BasePagingResponse<Challenge>> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        stravaId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Not found user!');
+    }
+
+    const { page, size } = pagination;
+    const skip = (page - 1) * size;
+
+    const [challenges, count] = await Promise.all([
+      this.prisma.challenge.findMany({
+        take: size,
+        skip,
+        where: {
+          ownerId: user.id,
+        },
+        orderBy: {
+          startDate: 'desc',
+        },
+      }),
+      this.prisma.challenge.count({ where: { ownerId: user.id } }),
+    ]);
+    return {
+      ...getDefaultPaginationReponse(pagination, count),
+      data: challenges,
+    };
   }
 }
