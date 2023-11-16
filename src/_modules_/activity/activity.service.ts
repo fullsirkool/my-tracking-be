@@ -495,7 +495,6 @@ export class ActivityService {
         visibility: visibility,
         averageSpeed: average_speed,
         maxSpeed: max_speed,
-        isValid: true,
       };
     });
     const activities = await this.prisma.activity.createMany({

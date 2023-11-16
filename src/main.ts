@@ -13,10 +13,10 @@ async function bootstrap() {
     })
   );
   const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('My Tracking API')
+    .setDescription('The my tracking API description')
     .setVersion('1.0')
-    .addTag('cats')
+    .addTag('My Tracking')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
