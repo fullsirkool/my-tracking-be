@@ -152,11 +152,8 @@ export class ChallengeService {
       await this.prisma.challenge.count({ where: findChallengeCondition }),
     ]);
     return {
+      ...getDefaultPaginationReponse(findChallengeDto, count),
       data: challenges,
-      page,
-      size,
-      totalPages: Math.ceil(count / size) || 0,
-      totalElement: count,
     };
   }
 

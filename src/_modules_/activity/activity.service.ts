@@ -21,6 +21,7 @@ import {
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Prisma } from '@prisma/client';
+import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
 
 @Injectable()
 export class ActivityService {
@@ -79,11 +80,8 @@ export class ActivityService {
     ]);
 
     return {
+      ...getDefaultPaginationReponse(findActivityDto, count),
       data: activities,
-      page,
-      size,
-      totalPages: Math.ceil(count / size) || 0,
-      totalElement: count,
     };
   }
 
