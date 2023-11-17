@@ -5,7 +5,7 @@ import {
   Get,
   Param,
   Query,
-  UseInterceptors,
+  UseInterceptors, Delete,
 } from '@nestjs/common';
 import { ActivityService } from './activity.service';
 import { response } from 'express';
@@ -16,6 +16,8 @@ import {
 } from './activity.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { ActivityTransformInterceptor } from 'src/interceptors/activity.transform';
+import {Auth} from "../../decorators/auth.decorator";
+import {User} from "../../decorators/user.decorator";
 
 @Controller('activity')
 @ApiTags('activity')
@@ -72,5 +74,10 @@ export class ActivityController {
   @Get()
   async find(@Query() findActivityDto: FindActivityDto) {
     return this.activityService.find(findActivityDto);
+  }
+  @Delete('/:id')
+  @Auth()
+  async deleteOne(@User('id') userId: number, @Param(':id') id: string) {
+    return this.activityService.deleteOne(userId, id);
   }
 }

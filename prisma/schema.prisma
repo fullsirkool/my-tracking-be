@@ -46,6 +46,7 @@ model Activity {
   type               String
   startDate          DateTime            @default(now()) @map(name: "start_date")
   startDateLocal     DateTime            @default(now()) @map(name: "start_date_local")
+  timezone           String              @default("Asia/Bangkok")
   visibility         String
   averageSpeed       Float               @map(name: "average_speed")
   maxSpeed           Float               @map(name: "max_speed")

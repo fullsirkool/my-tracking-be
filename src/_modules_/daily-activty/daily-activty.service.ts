@@ -30,7 +30,7 @@ export class DailyActivtyService {
     });
 
     if (!dailyActivity) {
-      return await this.prisma.dailyActivity.create({
+      return this.prisma.dailyActivity.create({
         data: {
           distance,
           movingTime,
@@ -41,7 +41,7 @@ export class DailyActivtyService {
       });
     }
 
-    return await this.prisma.dailyActivity.update({
+    return this.prisma.dailyActivity.update({
       data: {
         distance: distance + dailyActivity.distance,
         movingTime: movingTime + dailyActivity.movingTime,

@@ -1,27 +1,22 @@
 import {DailyActivtyService} from '../daily-activty/daily-activty.service';
 import {catchError, firstValueFrom} from 'rxjs';
-import {
-    ConflictException,
-    ForbiddenException,
-    Inject,
-    Injectable,
-    forwardRef,
-} from '@nestjs/common';
+import {ConflictException, ForbiddenException, forwardRef, Inject, Injectable,} from '@nestjs/common';
 import {PrismaService} from '../prisma/prisma.service';
 import {HttpService} from '@nestjs/axios';
 import {AxiosError} from 'axios';
 import {AuthService} from '../auth/auth.service';
 import {
-    ManualCreateActivityDto,
-    FindMonthlyActivityDto,
     CreateManyActivitiesDto,
     FindActivityDto,
     FindActivityResponse,
+    FindMonthlyActivityDto,
+    ManualCreateActivityDto,
 } from './activity.dto';
 import {InjectQueue} from '@nestjs/bull';
 import {Queue} from 'bull';
-import {Prisma} from '@prisma/client';
+import {Activity, Prisma} from '@prisma/client';
 import {getDefaultPaginationReponse} from 'src/utils/pagination.utils';
+import {DateRangeType, getDateRange} from "../../utils/date-range.utils";
 
 @Injectable()
 export class ActivityService {
@@ -226,7 +221,7 @@ export class ActivityService {
         return this.createActivity(owner.id, foundedActivity);
     }
 
-    async createActivity(userId, activityDto) {
+    async createActivity(userId: number, activityDto) {
         const {
             id,
             name,
@@ -241,7 +236,11 @@ export class ActivityService {
             average_speed,
             max_speed,
             splits_metric,
+            timezone
         } = activityDto;
+
+        const match = timezone.match(/\((GMT[+-]\d{2}:\d{2})\) (.+)/);
+        const timezoneIdentifier: string = match ? match[2] : undefined;
 
         if (type !== 'Run') {
             return;
@@ -253,22 +252,32 @@ export class ActivityService {
             throw new ConflictException('Activity already exists!');
         }
 
+        const createActivityPayload: Prisma.ActivityCreateInput = {
+            id: `${id}`,
+            name,
+            distance,
+            movingTime: moving_time,
+            elapsedTime: elapsed_time,
+            totalElevationGain: total_elevation_gain,
+            type,
+            startDate: start_date,
+            startDateLocal: start_date_local,
+            visibility: visibility,
+            averageSpeed: average_speed,
+            maxSpeed: max_speed,
+            user: {
+                connect: {
+                    id: userId
+                }
+            }
+        }
+
+        if (timezoneIdentifier) {
+            createActivityPayload.timezone = timezoneIdentifier
+        }
+
         const activity = await this.prisma.activity.create({
-            data: {
-                id: `${id}`,
-                userId,
-                name,
-                distance,
-                movingTime: moving_time,
-                elapsedTime: elapsed_time,
-                totalElevationGain: total_elevation_gain,
-                type,
-                startDate: start_date,
-                startDateLocal: start_date_local,
-                visibility: visibility,
-                averageSpeed: average_speed,
-                maxSpeed: max_speed,
-            },
+            data: createActivityPayload,
         });
 
         // Add Challenge Activity //
@@ -291,7 +300,10 @@ export class ActivityService {
             activity,
         );
 
-        const {id, distance, movingTime, elapsedTime, startDateLocal} = activity;
+        const {id, distance, movingTime, elapsedTime, startDateLocal, timezone} = activity;
+
+        const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY)
+        console.log('first, second', first, second, `${startDateLocal}`)
 
         let activityMinPace =
             splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
@@ -394,7 +406,7 @@ export class ActivityService {
             });
 
         if (!dailyChallengeActivities.length) {
-            console.log('don`t exist case')
+            console.log('don`t exist case', dailyChallengeActivities)
             const challengeDailyActivityPayload = challengeActivities.map((item) => {
                 const {challengeId, userId} = item;
                 const validActivity = item.isValid;
@@ -549,14 +561,101 @@ export class ActivityService {
             throw new ForbiddenException('Not Found Activity!')
         }
 
-        const {startDateLocal} = activity
+
+        await this.prisma.activity.delete({
+            where: {
+                id: activityId
+            }
+        })
+
+        await this.updateDailyActivityAfterDeleteActivity(activity, owner.id)
+        await this.updateChallengeDailyActivityAfterDeleteActivity(activity, owner.id)
+
+        return {success: true}
+    }
+
+    private async updateDailyActivityAfterDeleteActivity(activity: Activity, userId: number) {
+        const {distance, movingTime, elapsedTime, startDateLocal, timezone} = activity
+
+        const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY)
+        console.log('first, second', first, second)
 
         const findDate = new Date(startDateLocal);
         findDate.setHours(0, 0, 0, 0);
-        // const nextDate = new Date(
-        //     findDate.getFullYear(),
-        //     findDate.getMonth(),
-        //     findDate.getDate() + 1,
-        // );
+        const nextDate = new Date(
+            findDate.getFullYear(),
+            findDate.getMonth(),
+            findDate.getDate() + 1,
+        );
+        const dailyActivity = await this.prisma.dailyActivity.findFirst({
+            where: {
+                userId,
+                startDateLocal: {
+                    gte: findDate,
+                    lte: nextDate
+                }
+            }
+        })
+
+        const newDailyDistance = dailyActivity.distance - distance;
+        const newDailyMovingTime = dailyActivity.movingTime - movingTime;
+        const newDailyElapsedTime = dailyActivity.elapsedTime - elapsedTime;
+
+        if (!newDailyDistance || !newDailyMovingTime || !newDailyElapsedTime) {
+            return this.prisma.dailyActivity.deleteMany({
+                where: {
+                    userId,
+                    startDateLocal: {
+                        gte: findDate,
+                        lte: nextDate
+                    }
+                }
+            })
+        }
+        const payload = {
+            ...dailyActivity,
+            movingTime: newDailyMovingTime,
+            distance: newDailyDistance,
+            elapsedTime: newDailyElapsedTime
+        }
+        return this.prisma.dailyActivity.update({
+            data: payload,
+            where: {
+                id: payload.id
+            }
+        })
+    }
+
+    private async updateChallengeDailyActivityAfterDeleteActivity(activity: Activity, userId: number) {
+        const {distance, movingTime, elapsedTime, startDateLocal, timezone} = activity
+
+        const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY)
+        console.log('first, second', first, second)
+
+        const findDate = new Date(startDateLocal);
+        findDate.setHours(0, 0, 0, 0);
+        const nextDate = new Date(
+            findDate.getFullYear(),
+            findDate.getMonth(),
+            findDate.getDate() + 1,
+        );
+        const challengeActivities = await this.prisma.challengeDailyActivity.findMany({
+            where: {
+                userId,
+                startDateLocal: {
+                    gte: findDate,
+                    lte: nextDate
+                }
+            }
+        })
+
+        const payload = challengeActivities.map(ac => {
+            const newDistance = ac.distance - distance;
+            const newMovingTime = ac.movingTime - movingTime;
+            const newElapsedTime = ac.elapsedTime - elapsedTime;
+            return {...ac, distance: newDistance, movingTime: newMovingTime, elapsedTime: newElapsedTime}
+        })
+
+        return this.prisma.challengeDailyActivity.updateMany({data: payload})
     }
 }
