@@ -424,7 +424,7 @@ export class ActivityService {
             });
         }
 
-        console.log('existed case')
+        console.log('existed case', dailyChallengeActivities.map(item => item.distance), challengeActivities.map(item => item.activityId))
 
         const challengeDailyActivityPayload = dailyChallengeActivities.map(
             (item, index) => {
