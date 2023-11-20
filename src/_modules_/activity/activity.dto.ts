@@ -19,9 +19,8 @@ export class ManualCreateActivityDto {
     required: true,
     description: 'This is require field',
   })
-  @IsNumber()
   @IsNotEmpty()
-  activityId: number;
+  activityId: string;
 }
 
 export class FindMonthlyActivityDto {

@@ -38,6 +38,12 @@ export class ChallengeController {
     return this.challengeService.joinChallenge(userId, +id);
   }
 
+  @Post('/join-test/:id')
+  @Auth()
+  testImportJoin(@User('id') userId: number, @Param('id') id: number) {
+    return this.challengeService.importActivitiesAfterJoinChallenge(userId, +id);
+  }
+
   @Get('')
   async find(
     @Query() findChallengeDto: FindChallengeDto,

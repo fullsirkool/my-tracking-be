@@ -81,7 +81,7 @@ export class ActivityService {
         };
     }
 
-    async findStravaActivity(id: number, token: string) {
+    async findStravaActivity(id: string, token: string) {
         const activityUrl = `${process.env.STRAVA_BASE_URL}/activities/${id}`;
         const {data} = await firstValueFrom(
             this.httpService
@@ -302,9 +302,6 @@ export class ActivityService {
 
         const {id, distance, movingTime, elapsedTime, startDateLocal, timezone} = activity;
 
-        const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY)
-        console.log('first, second', first, second, `${startDateLocal}`)
-
         let activityMinPace =
             splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
         let activityMaxPace =
@@ -383,21 +380,15 @@ export class ActivityService {
             data: challengeActivities,
         });
 
-        const findDate = new Date(startDateLocal);
-        findDate.setHours(0, 0, 0, 0);
-        const nextDate = new Date(
-            findDate.getFullYear(),
-            findDate.getMonth(),
-            findDate.getDate() + 1,
-        );
+        const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY)
 
         const dailyChallengeActivities =
             await this.prisma.challengeDailyActivity.findMany({
                 where: {
                     userId,
                     startDateLocal: {
-                        gte: findDate,
-                        lte: nextDate,
+                        gte: first,
+                        lte: second,
                     },
                 },
                 orderBy: {
@@ -414,7 +405,7 @@ export class ActivityService {
                     distance: validActivity ? distance : 0,
                     movingTime: validActivity ? movingTime : 0,
                     elapsedTime: validActivity ? elapsedTime : 0,
-                    startDateLocal: findDate,
+                    startDateLocal: first,
                     userId,
                     challengeId,
                 };
@@ -423,9 +414,6 @@ export class ActivityService {
                 data: challengeDailyActivityPayload,
             });
         }
-
-        console.log('existed case', dailyChallengeActivities.map(item => item.distance), challengeActivities.map(item => item.activityId))
-
         const updateChallengeDailyActivityPayload = dailyChallengeActivities.map(
             (item, index) => {
                 const challenge = challengeActivities[index];
@@ -446,7 +434,6 @@ export class ActivityService {
             },
         );
 
-        console.log('before update', updateChallengeDailyActivityPayload)
         return updateChallengeDailyActivityPayload.map(async item => {
             const updatedChallengeDailyActivity = await this.prisma.challengeDailyActivity.updateMany({
                 data: item,
