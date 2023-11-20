@@ -430,8 +430,9 @@ export class ActivityService {
             (item, index) => {
                 const challenge = challengeActivities[index];
                 const isValidChallenge = challenge.isValid;
-                const {challengeId, userId} = item;
+                const {challengeId, userId, id} = item;
                 return {
+                    id,
                     distance: isValidChallenge ? distance + item.distance : item.distance,
                     movingTime: isValidChallenge
                         ? movingTime + item.movingTime
