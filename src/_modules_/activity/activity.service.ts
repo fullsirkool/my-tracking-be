@@ -440,7 +440,6 @@ export class ActivityService {
                     elapsedTime: isValidChallenge
                         ? elapsedTime + item.elapsedTime
                         : item.elapsedTime,
-                    startDateLocal: findDate,
                     challengeId,
                     userId,
                 };
@@ -448,10 +447,15 @@ export class ActivityService {
         );
 
         console.log('before update', updateChallengeDailyActivityPayload)
-
-        return this.prisma.challengeDailyActivity.updateMany({
-            data: updateChallengeDailyActivityPayload,
-        });
+        return updateChallengeDailyActivityPayload.map(async item => {
+            const updatedChallengeDailyActivity = await this.prisma.challengeDailyActivity.updateMany({
+                data: item,
+                where: {
+                    id: item.id
+                }
+            });
+            return updatedChallengeDailyActivity
+        })
     }
 
     async createMany(createManyDto: CreateManyActivitiesDto) {
