@@ -3,6 +3,6 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class AppService {
   getHello(): string {
-    return 'Update 2023/11/20';
+    return 'Update 2023/11/20:16:06';
   }
 }
