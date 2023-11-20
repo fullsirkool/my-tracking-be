@@ -426,7 +426,7 @@ export class ActivityService {
 
         console.log('existed case', dailyChallengeActivities.map(item => item.distance), challengeActivities.map(item => item.activityId))
 
-        const challengeDailyActivityPayload = dailyChallengeActivities.map(
+        const updateChallengeDailyActivityPayload = dailyChallengeActivities.map(
             (item, index) => {
                 const challenge = challengeActivities[index];
                 const isValidChallenge = challenge.isValid;
@@ -446,8 +446,10 @@ export class ActivityService {
             },
         );
 
+        console.log('before update', updateChallengeDailyActivityPayload)
+
         return this.prisma.challengeDailyActivity.updateMany({
-            data: challengeDailyActivityPayload,
+            data: updateChallengeDailyActivityPayload,
         });
     }
 
