@@ -1,21 +1,28 @@
 import * as moment from 'moment-timezone';
+
 export enum DateRangeType {
     MONTH = "months",
     DAY = "days"
 }
-export const getDateRange = (dateString : string, timezone: string, range?: DateRangeType) => {
+
+export const getDateRange = (dateString: string, timezone: string, range?: DateRangeType, format?: string) => {
     if (!dateString) {
         return
     }
+    let formattedDate = null
+    if (format) {
+        formattedDate = moment(dateString, format).tz(timezone).utcOffset(0)
+    } else {
+        formattedDate = moment(dateString).tz(timezone).utcOffset(0)
+    }
 
-    const formattedDate = moment(dateString, 'ddd MMM DD YYYY HH:mm:ss [GMT]Z').tz(timezone).utcOffset(0)
     const firstDate = moment(formattedDate).startOf('day').toISOString();
     const secondDate = moment(formattedDate).add(1, range).startOf('day').toISOString();
     return [firstDate, secondDate]
 }
 
 
-export const getStartDateFormattedWithoutTimezone = (dateString : string, timezone: string) => {
+export const getStartDateFormattedWithoutTimezone = (dateString: string, timezone: string) => {
     if (!dateString) {
         return
     }

@@ -572,7 +572,7 @@ export class ActivityService {
     private async updateDailyActivityAfterDeleteActivity(activity: Activity, userId: number) {
         const {distance, movingTime, elapsedTime, startDateLocal, timezone} = activity
 
-        const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY)
+        const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY, 'ddd MMM DD YYYY HH:mm:ss [GMT]Z')
         const dailyActivity = await this.prisma.dailyActivity.findFirst({
             where: {
                 userId,
@@ -615,7 +615,7 @@ export class ActivityService {
     private async updateChallengeDailyActivityAfterDeleteActivity(activity: Activity, userId: number) {
         const {distance, movingTime, elapsedTime, startDateLocal, timezone} = activity
 
-        const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY)
+        const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY, 'ddd MMM DD YYYY HH:mm:ss [GMT]Z')
         const challengeActivities = await this.prisma.challengeDailyActivity.findMany({
             where: {
                 userId,
