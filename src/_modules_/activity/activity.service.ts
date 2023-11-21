@@ -381,7 +381,7 @@ export class ActivityService {
         });
 
         const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY)
-
+        console.log('check import', id, first, second)
         const dailyChallengeActivities =
             await this.prisma.challengeDailyActivity.findMany({
                 where: {
@@ -414,6 +414,7 @@ export class ActivityService {
                 data: challengeDailyActivityPayload,
             });
         }
+        console.log('exist case', dailyChallengeActivities)
         const updateChallengeDailyActivityPayload = dailyChallengeActivities.map(
             (item, index) => {
                 const challenge = challengeActivities[index];
