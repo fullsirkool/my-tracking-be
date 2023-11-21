@@ -572,21 +572,12 @@ export class ActivityService {
         const {distance, movingTime, elapsedTime, startDateLocal, timezone} = activity
 
         const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY)
-        console.log('first, second', first, second)
-
-        const findDate = new Date(startDateLocal);
-        findDate.setHours(0, 0, 0, 0);
-        const nextDate = new Date(
-            findDate.getFullYear(),
-            findDate.getMonth(),
-            findDate.getDate() + 1,
-        );
         const dailyActivity = await this.prisma.dailyActivity.findFirst({
             where: {
                 userId,
                 startDateLocal: {
-                    gte: findDate,
-                    lte: nextDate
+                    gte: first,
+                    lte: second
                 }
             }
         })
@@ -600,8 +591,8 @@ export class ActivityService {
                 where: {
                     userId,
                     startDateLocal: {
-                        gte: findDate,
-                        lte: nextDate
+                        gte: first,
+                        lte: second
                     }
                 }
             })
@@ -624,24 +615,20 @@ export class ActivityService {
         const {distance, movingTime, elapsedTime, startDateLocal, timezone} = activity
 
         const [first, second] = getDateRange(`${startDateLocal}`, timezone, DateRangeType.DAY)
-        console.log('first, second', first, second)
-
-        const findDate = new Date(startDateLocal);
-        findDate.setHours(0, 0, 0, 0);
-        const nextDate = new Date(
-            findDate.getFullYear(),
-            findDate.getMonth(),
-            findDate.getDate() + 1,
-        );
         const challengeActivities = await this.prisma.challengeDailyActivity.findMany({
             where: {
                 userId,
                 startDateLocal: {
-                    gte: findDate,
-                    lte: nextDate
+                    gte: first,
+                    lte: second
                 }
             }
         })
+
+
+        if (!challengeActivities?.length) {
+            return []
+        }
 
         const payload = challengeActivities.map(ac => {
             const newDistance = ac.distance - distance;
@@ -649,7 +636,8 @@ export class ActivityService {
             const newElapsedTime = ac.elapsedTime - elapsedTime;
             return {...ac, distance: newDistance, movingTime: newMovingTime, elapsedTime: newElapsedTime}
         })
-
-        return this.prisma.challengeDailyActivity.updateMany({data: payload})
+        return Promise.all(payload.map(async item => {
+            return this.prisma.challengeDailyActivity.update({data: item, where: {id: item.id}})
+        }))
     }
 }

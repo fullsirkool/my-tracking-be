@@ -12,7 +12,7 @@ import { response } from 'express';
 import {
   ManualCreateActivityDto,
   FindMonthlyActivityDto,
-  FindActivityDto,
+  FindActivityDto, DeleteActivityDto,
 } from './activity.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { ActivityTransformInterceptor } from 'src/interceptors/activity.transform';
@@ -76,8 +76,8 @@ export class ActivityController {
     return this.activityService.find(findActivityDto);
   }
   @Delete('/:id')
-  @Auth()
-  async deleteOne(@User('id') userId: number, @Param(':id') id: string) {
-    return this.activityService.deleteOne(userId, id);
+  async deleteOne(@Param('id') id: string, @Body() deleteActivityDto: DeleteActivityDto) {
+    const {stravaId} = deleteActivityDto
+    return this.activityService.deleteOne(stravaId, id);
   }
 }

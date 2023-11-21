@@ -50,3 +50,8 @@ export class FindActivityDto extends BasePagingDto {
 
 export class FindActivityResponse extends BasePagingResponse<Activity> {}
 
+export class DeleteActivityDto {
+  @ApiProperty()
+  @IsInterger
+  stravaId: number;
+}
