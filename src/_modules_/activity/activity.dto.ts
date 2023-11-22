@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 import { Activity, User } from '@prisma/client';
 import { IsDateString } from 'class-validator';
-import { IsInterger } from 'src/decorators/validator.decorator';
+import { IsInteger } from 'src/decorators/validator.decorator';
 import { BasePagingDto, BasePagingResponse } from 'src/types/base.types';
 
 export type ShortActivity = Pick<Activity, 'id' | 'distance' | 'startDate'>;
@@ -29,7 +29,7 @@ export class FindMonthlyActivityDto {
   date: Date = new Date();
 
   @ApiProperty()
-  @IsInterger
+  @IsInteger
   stravaId: number;
 }
 
@@ -44,7 +44,7 @@ export class FindActivityDto extends BasePagingDto {
   date: Date = new Date();
 
   @ApiProperty()
-  @IsInterger
+  @IsInteger
   stravaId: number;
 }
 
@@ -52,6 +52,6 @@ export class FindActivityResponse extends BasePagingResponse<Activity> {}
 
 export class DeleteActivityDto {
   @ApiProperty()
-  @IsInterger
+  @IsInteger
   stravaId: number;
 }

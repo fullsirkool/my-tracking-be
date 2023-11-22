@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { DailyActivtyService } from './daily-activty.service';
-import { DailyActivtyController } from './daily-activty.controller';
+import { DailyActivityService } from './daily-activty.service';
+import { DailyActivityController } from './daily-activty.controller';
 
 @Module({
-  controllers: [DailyActivtyController],
-  providers: [DailyActivtyService],
-  exports: [DailyActivtyService],
+  controllers: [DailyActivityController],
+  providers: [DailyActivityService],
+  exports: [DailyActivityService],
 })
 export class DailyActivtyModule {}

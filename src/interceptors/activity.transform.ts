@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ShortActivity } from 'src/_modules_/activity/activity.dto';
 
 @Injectable()
 export class ActivityTransformInterceptor implements NestInterceptor {

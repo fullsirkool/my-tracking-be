@@ -56,8 +56,8 @@ export class ChallengeController {
   }
 
   @Get('/:id/user')
-  async findUserForChallege(@Param('id') id: number) {
-    return await this.challengeService.findUserForChallege(id);
+  async findUserForChallenge(@Param('id') id: number) {
+    return await this.challengeService.findUserForChallenge(id);
   }
 
   @Get('/user/joined/:stravaId')

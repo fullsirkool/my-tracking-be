@@ -8,7 +8,7 @@ import {
 import { IsDateString, IsInt, IsNotEmpty, IsString } from 'class-validator';
 import {
   IsFloat,
-  IsInterger,
+  IsInteger,
   OptionalProperty,
 } from 'src/decorators/validator.decorator';
 import { BasePagingDto } from 'src/types/base.types';
@@ -73,18 +73,18 @@ export class CreateChallengeCodeDto {
 
 export class FindChallengeDto extends BasePagingDto {
   @OptionalProperty()
-  @IsInterger
+  @IsInteger
   userId: number;
 
   @OptionalProperty()
-  @IsInterger
+  @IsInteger
   ownerId: number;
 }
 
 export class FindChallengeResponse extends BasePagingResponse<Challenge> {}
 
 export interface ChallengeDetailDto extends Challenge {
-  userActivitites: ChallengeUserActivities[];
+  userActivities: ChallengeUserActivities[];
 }
 
 export class ChallengeUserActivities {

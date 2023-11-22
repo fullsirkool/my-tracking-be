@@ -5,19 +5,17 @@ import {
   Get,
   Param,
   Query,
-  UseInterceptors, Delete,
+  Delete,
 } from '@nestjs/common';
 import { ActivityService } from './activity.service';
 import { response } from 'express';
 import {
   ManualCreateActivityDto,
   FindMonthlyActivityDto,
-  FindActivityDto, DeleteActivityDto,
+  FindActivityDto,
+  DeleteActivityDto,
 } from './activity.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { ActivityTransformInterceptor } from 'src/interceptors/activity.transform';
-import {Auth} from "../../decorators/auth.decorator";
-import {User} from "../../decorators/user.decorator";
 
 @Controller('activity')
 @ApiTags('activity')
@@ -76,8 +74,11 @@ export class ActivityController {
     return this.activityService.find(findActivityDto);
   }
   @Delete('/:id')
-  async deleteOne(@Param('id') id: string, @Body() deleteActivityDto: DeleteActivityDto) {
-    const {stravaId} = deleteActivityDto
+  async deleteOne(
+    @Param('id') id: string,
+    @Body() deleteActivityDto: DeleteActivityDto,
+  ) {
+    const { stravaId } = deleteActivityDto;
     return this.activityService.deleteOne(stravaId, id);
   }
 }
