@@ -1,4 +1,4 @@
-import {DailyActivtyService} from '../daily-activty/daily-activty.service';
+import {DailyActivityService} from '../daily-activty/daily-activty.service';
 import {catchError, firstValueFrom} from 'rxjs';
 import {ConflictException, ForbiddenException, forwardRef, Inject, Injectable,} from '@nestjs/common';
 import {PrismaService} from '../prisma/prisma.service';
@@ -25,7 +25,7 @@ export class ActivityService {
         private readonly httpService: HttpService,
         @Inject(forwardRef(() => AuthService))
         private readonly authService: AuthService,
-        private readonly dailyActivtyService: DailyActivtyService,
+        private readonly dailyActivityService: DailyActivityService,
         @InjectQueue('activity') private readonly activityTaskQueue: Queue,
     ) {
     }
@@ -141,7 +141,7 @@ export class ActivityService {
             requestDate.getMonth() + 1,
             0,
         );
-        return this.dailyActivtyService.getMonthlyActivity(
+        return this.dailyActivityService.getMonthlyActivity(
             id,
             start,
             end,
@@ -296,7 +296,7 @@ export class ActivityService {
             return;
         }
 
-        await this.dailyActivtyService.updateWebhookEvent(
+        await this.dailyActivityService.updateWebhookEvent(
             activity,
         );
 
@@ -504,7 +504,7 @@ export class ActivityService {
         const activities = await this.prisma.activity.createMany({
             data: payload,
         });
-        await this.dailyActivtyService.manualCreateMany(payload);
+        await this.dailyActivityService.manualCreateMany(payload);
         return activities;
     }
 

@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Activity } from '@prisma/client';
 
 @Injectable()
-export class DailyActivtyService {
+export class DailyActivityService {
   constructor(private readonly prisma: PrismaService) {}
 
   async updateWebhookEvent(activity: Activity) {

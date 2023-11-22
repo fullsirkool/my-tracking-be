@@ -95,7 +95,7 @@ export class AuthService {
     }
 
     const user = await this.userService.create(sendUser);
-    const activities = await this.activityService.createMany({
+    await this.activityService.createMany({
       user,
       access_token,
     });
