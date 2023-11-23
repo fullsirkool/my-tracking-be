@@ -1,8 +1,8 @@
 export function exclude<Model, Key extends keyof Model>(
   model: Model,
-  keys: Key[]
+  keys: Key[],
 ): Omit<Model, Key> {
-  keys.forEach(key => {
+  keys.forEach((key) => {
     delete model[key];
   });
   return model;

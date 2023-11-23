@@ -9,8 +9,8 @@ async function bootstrap() {
   // app.enableShutdownHooks()
   app.useGlobalPipes(
     new ValidationPipe({
-      transform: true
-    })
+      transform: true,
+    }),
   );
   const config = new DocumentBuilder()
     .setTitle('My Tracking API')

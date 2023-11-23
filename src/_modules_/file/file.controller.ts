@@ -11,7 +11,7 @@ export class FileController {
   @Post('upload')
   @ApiFile()
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    const destination = `images`
+    const destination = `images`;
     return await this.fileService.uploadFile(file, destination);
   }
 }

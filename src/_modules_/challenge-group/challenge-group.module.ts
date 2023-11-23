@@ -4,6 +4,6 @@ import { ChallengeGroupController } from './challenge-group.controller';
 
 @Module({
   controllers: [ChallengeGroupController],
-  providers: [ChallengeGroupService]
+  providers: [ChallengeGroupService],
 })
 export class ChallengeGroupModule {}

@@ -12,7 +12,7 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { AdminService } from '../admin/admin.service';
 import * as bcrypt from 'bcrypt';
-import { Claims, UserClaims } from 'src/types/auth.types';
+import { Claims } from 'src/types/auth.types';
 import { JwtService } from '@nestjs/jwt';
 import { exclude } from 'src/utils/transform.utils';
 import { ActivityService } from '../activity/activity.service';
@@ -242,9 +242,5 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
-  }
-
-  async getSelfInfo(claims: UserClaims) {
-    return {};
   }
 }

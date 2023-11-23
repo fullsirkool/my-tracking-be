@@ -7,5 +7,5 @@ export const Admin = createParamDecorator(
     const user = request.user;
 
     return data ? user?.[data] : user;
-  }
+  },
 );

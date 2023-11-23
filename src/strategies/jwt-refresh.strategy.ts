@@ -5,19 +5,19 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
-  'jwt-refresh'
+  'jwt-refresh',
 ) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromBodyField('refreshToken'),
       ignoreExpiration: false,
-      secretOrKey: process.env.REFRESH_TOKEN_SECRET
+      secretOrKey: process.env.REFRESH_TOKEN_SECRET,
     });
   }
 
   async validate(payload: { sub: number }) {
     return {
-      id: payload.sub
+      id: payload.sub,
     };
   }
 }

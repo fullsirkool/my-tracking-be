@@ -53,18 +53,8 @@ export class DailyActivityService {
     });
   }
 
-  async manualCreateMany(activities) {
-    const payload = activities.map((item) => ({
-      userId: item.userId,
-      distance: item.distance,
-      movingTime: item.movingTime,
-      elapsedTime: item.elapsedTime,
-      startDateLocal: item.startDateLocal,
-    }));
-  }
-
   async getMonthlyActivity(userId: number, start: Date, end: Date) {
-    return await this.prisma.dailyActivity.findMany({
+    return this.prisma.dailyActivity.findMany({
       where: {
         userId,
         startDateLocal: {
@@ -86,7 +76,7 @@ export class DailyActivityService {
     });
     const transformedActivities =
       this.transformActivtyToDailyActivity(activities);
-    return await this.prisma.dailyActivity.createMany({
+    return this.prisma.dailyActivity.createMany({
       data: transformedActivities.map((item) => ({ ...item, userId })),
     });
   }

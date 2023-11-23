@@ -41,7 +41,10 @@ export class ChallengeController {
   @Post('/join-test/:id')
   @Auth()
   testImportJoin(@User('id') userId: number, @Param('id') id: number) {
-    return this.challengeService.importActivitiesAfterJoinChallenge(userId, +id);
+    return this.challengeService.importActivitiesAfterJoinChallenge(
+      userId,
+      +id,
+    );
   }
 
   @Get('')

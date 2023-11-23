@@ -1,6 +1,6 @@
 export const Queues = {
   activity: 'activity',
-  challenge: 'challenge'
+  challenge: 'challenge',
 } as const;
 
 export const ActivityJobs = {
