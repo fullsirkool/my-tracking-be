@@ -15,12 +15,7 @@ model User {
   stravaId               Int                      @unique @map(name: "strava_id")
   firstName              String?                  @map(name: "first_name")
   lastName               String?                  @map(name: "last_name")
-  bio                    String?
-  city                   String?
-  state                  String?
-  country                String?
   sex                    String?
-  profileMedium          String?                  @map("profile_medium")
   profile                String?                  @map(name: "profile_long")
   stravaRefreshToken     String?                  @map(name: "strava_refresh_token")
   refreshToken           String?                  @map(name: "refresh_token")
@@ -31,8 +26,27 @@ model User {
   dailyActivity          DailyActivity[]
   challengeActivity      ChallengeActivity[]
   challengeDailyActivity ChallengeDailyActivity[]
+  point                  Point?
 
   @@map("user")
+}
+
+model UserSignInInfor {
+  id       Int     @id @unique @default(autoincrement())
+  googleId String? @unique @map(name: "google_id")
+  email    String? @unique @map(name: "email")
+  password String? @map(name: "password")
+  capcha   String? @default(uuid())
+
+  @@map("user_sign_in_infor")
+}
+
+model Point {
+  userId Int  @id @unique @map(name: "user_id")
+  points Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("point")
 }
 
 model Activity {
