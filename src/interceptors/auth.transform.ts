@@ -16,10 +16,10 @@ export class AuthTransformInterceptor implements NestInterceptor {
           return {};
         }
         const { user } = data;
-        const { id, stravaId, firstName, lastName, profile } = user;
+        const { id, stravaId, firstName, lastName, profile, email } = user;
         return {
           ...data,
-          user: { id, stravaId, firstName, lastName, profile },
+          user: { id, stravaId, firstName, lastName, profile, email },
         };
       }),
     );
