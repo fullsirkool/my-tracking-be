@@ -13,6 +13,9 @@ datasource db {
 model User {
   id                     Int                      @id @unique @default(autoincrement())
   stravaId               Int                      @unique @map(name: "strava_id")
+  googleId               String?                  @unique @map(name: "google_id")
+  email                  String?                  @unique @map(name: "email")
+  password               String?                  @map(name: "password")
   firstName              String?                  @map(name: "first_name")
   lastName               String?                  @map(name: "last_name")
   sex                    String?
@@ -20,6 +23,7 @@ model User {
   stravaRefreshToken     String?                  @map(name: "strava_refresh_token")
   refreshToken           String?                  @map(name: "refresh_token")
   tokenExpiresAt         String?                  @map(name: "token_expires")
+  capcha                 String?                  @default(uuid())
   activities             Activity[]
   challenges             Challenge[]
   challengeUsers         ChallengeUser[]
@@ -29,16 +33,6 @@ model User {
   point                  Point?
 
   @@map("user")
-}
-
-model UserSignInInfor {
-  id       Int     @id @unique @default(autoincrement())
-  googleId String? @unique @map(name: "google_id")
-  email    String? @unique @map(name: "email")
-  password String? @map(name: "password")
-  capcha   String? @default(uuid())
-
-  @@map("user_sign_in_infor")
 }
 
 model Point {
