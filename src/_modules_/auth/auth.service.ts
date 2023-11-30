@@ -86,6 +86,7 @@ export class AuthService {
       };
       const user = await this.userService.changeToken(id, changeTokenDto);
       const { accessToken, refreshToken } = await this.generateTokens(user);
+      console.log('user before change', user)
       return {
         user,
         accessToken,
@@ -100,6 +101,7 @@ export class AuthService {
       access_token,
     });
     const { accessToken, refreshToken } = await this.generateTokens(user);
+    console.log('user before change', user)
     return {
       user,
       accessToken,

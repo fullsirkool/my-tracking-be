@@ -1,5 +1,5 @@
 import { PrismaService } from './../prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
+import {BadRequestException, Injectable} from '@nestjs/common';
 import { CreateUserDto } from './user.dto';
 import { User } from '@prisma/client';
 import { ChangeTokenDto } from '../auth/auth.dto';
@@ -16,9 +16,13 @@ export class UserService {
   }
 
   async findByStravaId(stravaId: number): Promise<User> {
+    if (!stravaId) {
+      throw new BadRequestException("stravaId is error!")
+    }
     const findUser = await this.prisma.user.findUnique({
       where: { stravaId },
     });
+
     return findUser;
   }
 
