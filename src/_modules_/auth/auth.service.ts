@@ -265,16 +265,17 @@ export class AuthService {
             throw new ConflictException('User has been completed!')
         }
 
-        const completeUser = await this.prisma.user.update({
+        const saltOrRounds = +process.env.USER_SALT;
+        const hash = await bcrypt.hash(password, saltOrRounds);
+
+        return this.prisma.user.update({
             data: {
                 email,
-                password
+                password: hash
             },
             where: {
                 id: user.id
             }
         })
-
-        return {success: true}
     }
 }

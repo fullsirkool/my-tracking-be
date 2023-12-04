@@ -59,6 +59,7 @@ export class AuthController {
     @Patch('/complete')
     @ApiBody({type: CompleteUserDto})
     @Auth()
+    @UseInterceptors(AuthTransformInterceptor)
     async complete(
         @User('id') userId: number,
         @Body() completeUserDto: CompleteUserDto,

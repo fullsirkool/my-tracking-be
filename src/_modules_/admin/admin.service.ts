@@ -12,7 +12,7 @@ export class AdminService {
 
     const saltOrRounds = +process.env.BCRYPT_SALT;
     const hash = await bcrypt.hash(password, saltOrRounds);
-    return await this.prisma.admin.create({
+    return this.prisma.admin.create({
       data: {
         username,
         password: hash,
@@ -21,6 +21,6 @@ export class AdminService {
   }
 
   async findByUsername(username: string) {
-    return await this.prisma.admin.findUnique({ where: { username } });
+    return this.prisma.admin.findUnique({ where: { username } });
   }
 }
