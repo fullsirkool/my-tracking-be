@@ -249,7 +249,7 @@ export class AuthService {
         return {}
     }
 
-    async complete(userId, completeUserDto: CompleteUserDto) {
+    async complete(userId: number, completeUserDto: CompleteUserDto) {
         const {email, password} = completeUserDto
 
         const user = await this.prisma.user.findUnique({
@@ -274,7 +274,7 @@ export class AuthService {
                 password: hash
             },
             where: {
-                id: user.id
+                id: userId
             }
         })
     }
