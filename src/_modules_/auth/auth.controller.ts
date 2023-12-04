@@ -18,6 +18,7 @@ import {User} from 'src/decorators/user.decorator';
 import {AuthTransformInterceptor} from 'src/interceptors/auth.transform';
 import {JwtRefreshAuthGuard} from 'src/guards/jwt-refresh.guard';
 import {Auth} from "../../decorators/auth.decorator";
+import {UserTransformInterceptor} from "../../interceptors/user.transform";
 
 @Controller('auth')
 @ApiTags('auth')
@@ -59,7 +60,7 @@ export class AuthController {
     @Patch('/complete')
     @ApiBody({type: CompleteUserDto})
     @Auth()
-    @UseInterceptors(AuthTransformInterceptor)
+    @UseInterceptors(UserTransformInterceptor)
     async complete(
         @User('id') userId: number,
         @Body() completeUserDto: CompleteUserDto,
