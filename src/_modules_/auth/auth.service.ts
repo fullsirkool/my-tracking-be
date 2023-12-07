@@ -5,9 +5,16 @@ import {
     Inject,
     Injectable,
     UnauthorizedException,
-    forwardRef, NotFoundException, ConflictException,
+    forwardRef,
+    NotFoundException,
+    ConflictException,
 } from '@nestjs/common';
-import {AuthDto, CompleteUserDto, SignInAdminDto} from './auth.dto';
+import {
+    AuthDto,
+    CompleteUserDto,
+    SignInAdminDto,
+    SignUpDto,
+} from './auth.dto';
 import {HttpService} from '@nestjs/axios';
 import {AxiosError} from 'axios';
 import {AdminService} from '../admin/admin.service';
@@ -246,23 +253,23 @@ export class AuthService {
     }
 
     getSelfInfo(claims: UserClaims) {
-        return {}
+        return {};
     }
 
     async complete(userId: number, completeUserDto: CompleteUserDto) {
-        const {email, password} = completeUserDto
+        const {email, password} = completeUserDto;
 
         const user = await this.prisma.user.findUnique({
             where: {
-                id: userId
-            }
-        })
+                id: userId,
+            },
+        });
         if (!user) {
-            throw new NotFoundException('Not Found User!')
+            throw new NotFoundException('Not Found User!');
         }
 
         if (user.email && user.password) {
-            throw new ConflictException('User has been completed!')
+            throw new ConflictException('User has been completed!');
         }
 
         const saltOrRounds = +process.env.USER_SALT;
@@ -271,11 +278,37 @@ export class AuthService {
         return this.prisma.user.update({
             data: {
                 email,
-                password: hash
+                password: hash,
             },
             where: {
-                id: userId
+                id: userId,
+            },
+        });
+    }
+
+    async create(signUpDto: SignUpDto) {
+        const {email, password, firstName, lastName, sex} = signUpDto;
+        const user = await this.prisma.user.findUnique({
+            where: {email},
+        });
+
+        if (user) {
+            throw new ConflictException('Email has registered!');
+        }
+
+        const saltOrRounds = +process.env.USER_SALT;
+        const hash = await bcrypt.hash(password, saltOrRounds);
+
+        await this.prisma.user.create({
+            data: {
+                email,
+                password: hash,
+                firstName,
+                lastName,
+                sex
             }
-        })
+        });
+        
+        return {success: true}
     }
 }

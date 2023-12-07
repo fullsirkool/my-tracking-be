@@ -5,10 +5,11 @@ import {
     UseGuards,
     Get,
     UseInterceptors,
-    Body, Patch,
+    Body,
+    Patch,
 } from '@nestjs/common';
 import {AuthService} from './auth.service';
-import {CompleteUserDto, RenewDto, SignInAdminDto} from './auth.dto';
+import {CompleteUserDto, RenewDto, SignInAdminDto, SignUpDto} from './auth.dto';
 import {LocalAuthGuard} from 'src/guards/local-auth.guard';
 import {Claims, UserClaims} from 'src/types/auth.types';
 import {ApiBody, ApiTags} from '@nestjs/swagger';
@@ -17,8 +18,8 @@ import {JwtAuthGuard} from 'src/guards/jwt-auth.guard';
 import {User} from 'src/decorators/user.decorator';
 import {AuthTransformInterceptor} from 'src/interceptors/auth.transform';
 import {JwtRefreshAuthGuard} from 'src/guards/jwt-refresh.guard';
-import {Auth} from "../../decorators/auth.decorator";
-import {UserTransformInterceptor} from "../../interceptors/user.transform";
+import {Auth} from '../../decorators/auth.decorator';
+import {UserTransformInterceptor} from '../../interceptors/user.transform';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -31,6 +32,12 @@ export class AuthController {
     async signin(@Param('code') code: string) {
         const signInResponse = await this.authService.signIn(code);
         return signInResponse;
+    }
+
+    @Post('/signup')
+    @UseInterceptors(AuthTransformInterceptor)
+    signUp(@Body() signUpDto: SignUpDto) {
+        return this.authService.create(signUpDto);
     }
 
     @UseGuards(LocalAuthGuard)

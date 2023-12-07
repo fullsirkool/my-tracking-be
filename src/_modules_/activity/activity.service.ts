@@ -1,679 +1,662 @@
-import { DailyActivityService } from '../daily-activty/daily-activty.service';
-import { catchError, firstValueFrom } from 'rxjs';
+import {DailyActivityService} from '../daily-activty/daily-activty.service';
+import {catchError, firstValueFrom} from 'rxjs';
 import {
-  ConflictException,
-  ForbiddenException,
-  forwardRef,
-  Inject,
-  Injectable,
+    ConflictException,
+    ForbiddenException,
+    forwardRef,
+    Inject,
+    Injectable,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { HttpService } from '@nestjs/axios';
-import { AxiosError } from 'axios';
-import { AuthService } from '../auth/auth.service';
+import {PrismaService} from '../prisma/prisma.service';
+import {HttpService} from '@nestjs/axios';
+import {AxiosError} from 'axios';
+import {AuthService} from '../auth/auth.service';
 import {
-  CreateManyActivitiesDto,
-  FindActivityDto,
-  FindActivityResponse,
-  FindMonthlyActivityDto,
-  ManualCreateActivityDto,
+    CreateManyActivitiesDto,
+    FindActivityDto,
+    FindActivityResponse,
+    FindMonthlyActivityDto,
+    ManualCreateActivityDto,
 } from './activity.dto';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
-import { Activity, Prisma } from '@prisma/client';
-import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
-import { DateRangeType, getDateRange } from '../../utils/date-range.utils';
+import {InjectQueue} from '@nestjs/bull';
+import {Queue} from 'bull';
+import {Activity, Prisma} from '@prisma/client';
+import {getDefaultPaginationReponse} from 'src/utils/pagination.utils';
+import {DateRangeType, getDateRange} from '../../utils/date-range.utils';
+import {UserService} from "../user/user.service";
 
 @Injectable()
 export class ActivityService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly httpService: HttpService,
-    @Inject(forwardRef(() => AuthService))
-    private readonly authService: AuthService,
-    private readonly dailyActivityService: DailyActivityService,
-    @InjectQueue('activity') private readonly activityTaskQueue: Queue,
-  ) {}
-
-  async find(findActivityDto: FindActivityDto): Promise<FindActivityResponse> {
-    const { page, size, date, stravaId } = findActivityDto;
-    const skip = (page - 1) * size;
-
-    const findActivityCondition: Prisma.ActivityWhereInput = {};
-
-    if (date) {
-      const requestDate = new Date(date);
-      const start = new Date(
-        requestDate.getFullYear(),
-        requestDate.getMonth(),
-        1,
-      );
-      const end = new Date(
-        requestDate.getFullYear(),
-        requestDate.getMonth() + 1,
-        0,
-      );
-
-      findActivityCondition.startDateLocal = {
-        lte: end,
-        gte: start,
-      };
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly httpService: HttpService,
+        @Inject(forwardRef(() => AuthService))
+        private readonly authService: AuthService,
+        private readonly dailyActivityService: DailyActivityService,
+        private readonly userService: UserService,
+        @InjectQueue('activity') private readonly activityTaskQueue: Queue,
+    ) {
     }
 
-    if (stravaId) {
-      findActivityCondition.user = {
-        stravaId,
-      };
-    }
+    async find(findActivityDto: FindActivityDto): Promise<FindActivityResponse> {
+        const {page, size, date, stravaId} = findActivityDto;
+        const skip = (page - 1) * size;
 
-    const [activities, count] = await Promise.all([
-      this.prisma.activity.findMany({
-        skip,
-        take: size,
-        where: findActivityCondition,
-        orderBy: {
-          startDateLocal: 'desc',
-        },
-      }),
-      this.prisma.activity.count({
-        where: findActivityCondition,
-      }),
-    ]);
+        const findActivityCondition: Prisma.ActivityWhereInput = {};
 
-    return {
-      ...getDefaultPaginationReponse(findActivityDto, count),
-      data: activities,
-    };
-  }
+        if (date) {
+            const requestDate = new Date(date);
+            const start = new Date(
+                requestDate.getFullYear(),
+                requestDate.getMonth(),
+                1,
+            );
+            const end = new Date(
+                requestDate.getFullYear(),
+                requestDate.getMonth() + 1,
+                0,
+            );
 
-  async findStravaActivity(id: string, token: string) {
-    const activityUrl = `${process.env.STRAVA_BASE_URL}/activities/${id}`;
-    const { data } = await firstValueFrom(
-      this.httpService
-        .get(activityUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .pipe(
-          catchError((error: AxiosError) => {
-            console.error(error);
-            throw 'An error happened!';
-          }),
-        ),
-    );
-
-    return data;
-  }
-
-  z;
-
-  async findOneByActivityId(id: string) {
-    return this.prisma.activity.findUnique({
-      where: {
-        id: `${id}`,
-      },
-    });
-  }
-
-  async findMonthlyActivity(findMonthlyActivityDto: FindMonthlyActivityDto) {
-    const { date, stravaId } = findMonthlyActivityDto;
-
-    if (!stravaId) {
-      throw new ForbiddenException('Strava ID Required!');
-    }
-
-    const owner = await this.prisma.user.findUnique({
-      where: {
-        stravaId: +stravaId,
-      },
-    });
-
-    if (!owner) {
-      throw new ForbiddenException('Not Found Owner!');
-    }
-
-    const { id } = owner;
-
-    const requestDate = new Date(date);
-    const start = new Date(
-      requestDate.getFullYear(),
-      requestDate.getMonth(),
-      1,
-    );
-    const end = new Date(
-      requestDate.getFullYear(),
-      requestDate.getMonth() + 1,
-      0,
-    );
-    return this.dailyActivityService.getMonthlyActivity(id, start, end);
-  }
-
-  async getTotalStatistics(stravaId: number) {
-    if (!stravaId) {
-      throw new ForbiddenException('Strava ID Required!');
-    }
-
-    const owner = await this.prisma.user.findUnique({
-      where: {
-        stravaId: +stravaId,
-      },
-    });
-
-    if (!owner) {
-      throw new ForbiddenException('Not Found Owner!');
-    }
-
-    const { id } = owner;
-    const { _sum, _count } = await this.prisma.activity.aggregate({
-      _sum: {
-        distance: true,
-        movingTime: true,
-      },
-      _count: {
-        id: true,
-      },
-      where: {
-        userId: id,
-      },
-    });
-
-    const distance = _sum.distance || 0;
-    const totalMovingTime = _sum.movingTime || 0;
-    const count = _count.id || 0;
-
-    const pace = totalMovingTime ? totalMovingTime / (distance / 1000) / 60 : 0;
-    return {
-      distance,
-      pace,
-      count,
-      totalMovingTime,
-    };
-  }
-
-  async getWebhookResponse(createActivityDto) {
-    const { object_type, object_id, owner_id, aspect_type } = createActivityDto;
-
-    if (object_type !== 'activity' || aspect_type !== 'create') {
-      return;
-    }
-
-    const owner = await this.prisma.user.findUnique({
-      where: {
-        stravaId: owner_id,
-      },
-    });
-
-    if (!owner) {
-      return;
-    }
-
-    const { stravaRefreshToken } = owner;
-
-    const tokenRes = await this.authService.resetToken(stravaRefreshToken);
-
-    const { access_token } = tokenRes;
-
-    const foundedActivity = await this.findStravaActivity(
-      object_id,
-      access_token,
-    );
-
-    return this.createActivity(owner.id, foundedActivity);
-  }
-
-  async createActivity(userId: number, activityDto) {
-    const {
-      id,
-      name,
-      distance,
-      moving_time,
-      elapsed_time,
-      total_elevation_gain,
-      start_date,
-      start_date_local,
-      type,
-      visibility,
-      average_speed,
-      max_speed,
-      splits_metric,
-      timezone,
-    } = activityDto;
-
-    const match = timezone.match(/\((GMT[+-]\d{2}:\d{2})\) (.+)/);
-    const timezoneIdentifier: string = match ? match[2] : undefined;
-
-    if (type !== 'Run') {
-      return;
-    }
-
-    const foundedActivity = await this.findOneByActivityId(id);
-
-    if (foundedActivity) {
-      throw new ConflictException('Activity already exists!');
-    }
-
-    const createActivityPayload: Prisma.ActivityCreateInput = {
-      id: `${id}`,
-      name,
-      distance,
-      movingTime: moving_time,
-      elapsedTime: elapsed_time,
-      totalElevationGain: total_elevation_gain,
-      type,
-      startDate: start_date,
-      startDateLocal: start_date_local,
-      visibility: visibility,
-      averageSpeed: average_speed,
-      maxSpeed: max_speed,
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
-    };
-
-    if (timezoneIdentifier) {
-      createActivityPayload.timezone = timezoneIdentifier;
-    }
-
-    const activity = await this.prisma.activity.create({
-      data: createActivityPayload,
-    });
-
-    // Add Challenge Activity //
-    await this.activityTaskQueue.add('import', {
-      userId,
-      activity,
-      splits_metric,
-    });
-
-    return activity;
-  }
-
-  async importActivityStatistic(data) {
-    const { userId, activity, splits_metric } = data;
-    if (!activity) {
-      return;
-    }
-
-    await this.dailyActivityService.updateWebhookEvent(activity);
-
-    const { id, distance, movingTime, elapsedTime, startDateLocal, timezone } =
-      activity;
-
-    let activityMinPace =
-      splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
-    let activityMaxPace =
-      splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
-
-    splits_metric.forEach((element) => {
-      const { distance, moving_time } = element;
-      if (distance < 100) {
-        return;
-      }
-
-      const pace = moving_time / (distance / 1000);
-      activityMinPace = Math.min(activityMinPace, pace);
-      activityMaxPace = Math.max(activityMaxPace, pace);
-    });
-
-    const challenges = await this.prisma.challengeUser.findMany({
-      where: {
-        userId,
-        challenge: {
-          startDate: {
-            lte: new Date(),
-          },
-          endDate: {
-            gte: new Date(),
-          },
-        },
-      },
-      select: {
-        id: true,
-        challenge: {
-          include: {
-            rule: true,
-          },
-        },
-      },
-      orderBy: {
-        challengeId: 'asc',
-      },
-    });
-
-    const challengeActivities = challenges.map((element) => {
-      const { challenge } = element;
-      const { rule } = challenge;
-      const { minPace, maxPace, minDistance, maxDistance } = rule;
-      let isValid = true;
-      if (minDistance) {
-        if (distance < minDistance) {
-          isValid = false;
+            findActivityCondition.startDateLocal = {
+                lte: end,
+                gte: start,
+            };
         }
-      }
-      if (maxDistance) {
-        if (distance > maxDistance) {
-          isValid = false;
-        }
-      }
-      if (maxPace) {
-        if (activityMaxPace > maxPace) {
-          isValid = false;
-        }
-      }
-      if (minPace) {
-        if (activityMinPace < minPace) {
-          isValid = false;
-        }
-      }
-      return {
-        activityId: `${id}`,
-        challengeId: challenge.id,
-        userId,
-        isValid,
-      };
-    });
 
-    await this.prisma.challengeActivity.createMany({
-      data: challengeActivities,
-    });
+        if (stravaId) {
+            findActivityCondition.user = {
+                stravaId,
+            };
+        }
 
-    const [first, second] = getDateRange(
-      `${startDateLocal}`,
-      timezone,
-      DateRangeType.DAY,
-    );
-    console.log('check import', id, first, second);
-    const dailyChallengeActivities =
-      await this.prisma.challengeDailyActivity.findMany({
-        where: {
-          userId,
-          startDateLocal: {
-            gte: first,
-            lte: second,
-          },
-        },
-        orderBy: {
-          challengeId: 'asc',
-        },
-      });
+        const [activities, count] = await Promise.all([
+            this.prisma.activity.findMany({
+                skip,
+                take: size,
+                where: findActivityCondition,
+                orderBy: {
+                    startDateLocal: 'desc',
+                },
+            }),
+            this.prisma.activity.count({
+                where: findActivityCondition,
+            }),
+        ]);
 
-    if (!dailyChallengeActivities.length) {
-      console.log('don`t exist case', dailyChallengeActivities);
-      const challengeDailyActivityPayload = challengeActivities.map((item) => {
-        const { challengeId, userId } = item;
-        const validActivity = item.isValid;
         return {
-          distance: validActivity ? distance : 0,
-          movingTime: validActivity ? movingTime : 0,
-          elapsedTime: validActivity ? elapsedTime : 0,
-          startDateLocal: first,
-          userId,
-          challengeId,
+            ...getDefaultPaginationReponse(findActivityDto, count),
+            data: activities,
         };
-      });
-      return this.prisma.challengeDailyActivity.createMany({
-        data: challengeDailyActivityPayload,
-      });
     }
-    console.log('exist case', dailyChallengeActivities);
-    const updateChallengeDailyActivityPayload = dailyChallengeActivities.map(
-      (item, index) => {
-        const challenge = challengeActivities[index];
-        const isValidChallenge = challenge.isValid;
-        const { challengeId, userId, id } = item;
-        return {
-          id,
-          distance: isValidChallenge ? distance + item.distance : item.distance,
-          movingTime: isValidChallenge
-            ? movingTime + item.movingTime
-            : item.movingTime,
-          elapsedTime: isValidChallenge
-            ? elapsedTime + item.elapsedTime
-            : item.elapsedTime,
-          challengeId,
-          userId,
-        };
-      },
-    );
 
-    return updateChallengeDailyActivityPayload.map(async (item) => {
-      const updatedChallengeDailyActivity =
-        await this.prisma.challengeDailyActivity.updateMany({
-          data: item,
-          where: {
-            id: item.id,
-          },
+    async findStravaActivity(id: string, token: string) {
+        const activityUrl = `${process.env.STRAVA_BASE_URL}/activities/${id}`;
+        const {data} = await firstValueFrom(
+            this.httpService
+                .get(activityUrl, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                })
+                .pipe(
+                    catchError((error: AxiosError) => {
+                        console.error(error);
+                        throw 'An error happened!';
+                    }),
+                ),
+        );
+
+        return data;
+    }
+
+    z;
+
+    async findOneByActivityId(id: string) {
+        return this.prisma.activity.findUnique({
+            where: {
+                id: `${id}`,
+            },
         });
-      return updatedChallengeDailyActivity;
-    });
-  }
+    }
 
-  async createMany(createManyDto: CreateManyActivitiesDto) {
-    const { user, access_token } = createManyDto;
-    const currentDate = new Date();
+    async findMonthlyActivity(findMonthlyActivityDto: FindMonthlyActivityDto) {
+        const {date, stravaId} = findMonthlyActivityDto;
 
-    // Subtract 30 days
-    currentDate.setDate(currentDate.getDate() - 30);
-    const after = Math.ceil(currentDate.getTime() / 1000);
-    const activityUrl = `${process.env.STRAVA_BASE_URL}/athlete/activities`;
-    const { data } = await firstValueFrom(
-      this.httpService
-        .get(activityUrl, {
-          params: {
+        if (!stravaId) {
+            throw new ForbiddenException('Strava ID Required!');
+        }
+
+        const owner = await this.userService.findByStravaId(+stravaId);
+
+        if (!owner) {
+            throw new ForbiddenException('Not Found Owner!');
+        }
+
+        const {id} = owner;
+
+        const requestDate = new Date(date);
+        const start = new Date(
+            requestDate.getFullYear(),
+            requestDate.getMonth(),
+            1,
+        );
+        const end = new Date(
+            requestDate.getFullYear(),
+            requestDate.getMonth() + 1,
+            0,
+        );
+        return this.dailyActivityService.getMonthlyActivity(id, start, end);
+    }
+
+    async getTotalStatistics(stravaId: number) {
+        if (!stravaId) {
+            throw new ForbiddenException('Strava ID Required!');
+        }
+
+        const owner = await this.userService.findByStravaId(+stravaId);
+
+        if (!owner) {
+            throw new ForbiddenException('Not Found Owner!');
+        }
+
+        const {id} = owner;
+        const {_sum, _count} = await this.prisma.activity.aggregate({
+            _sum: {
+                distance: true,
+                movingTime: true,
+            },
+            _count: {
+                id: true,
+            },
+            where: {
+                userId: id,
+            },
+        });
+
+        const distance = _sum.distance || 0;
+        const totalMovingTime = _sum.movingTime || 0;
+        const count = _count.id || 0;
+
+        const pace = totalMovingTime ? totalMovingTime / (distance / 1000) / 60 : 0;
+        return {
+            distance,
+            pace,
+            count,
+            totalMovingTime,
+        };
+    }
+
+    async getWebhookResponse(createActivityDto) {
+        const {object_type, object_id, owner_id, aspect_type} = createActivityDto;
+
+        if (object_type !== 'activity' || aspect_type !== 'create') {
+            return;
+        }
+
+        const owner = await this.userService.findByStravaId(owner_id)
+
+        if (!owner) {
+            return;
+        }
+
+        const {stravaRefreshToken} = owner;
+
+        const tokenRes = await this.authService.resetToken(stravaRefreshToken);
+
+        const {access_token} = tokenRes;
+
+        const foundedActivity = await this.findStravaActivity(
+            object_id,
             access_token,
-            after,
-          },
-        })
-        .pipe(
-          catchError((error: AxiosError) => {
-            console.error(error);
-            throw 'An error happened!';
-          }),
-        ),
-    );
+        );
 
-    const payload = data.map((item) => {
-      const {
-        id,
-        name,
-        distance,
-        moving_time,
-        elapsed_time,
-        total_elevation_gain,
-        start_date,
-        start_date_local,
-        type,
-        visibility,
-        average_speed,
-        max_speed,
-      } = item;
-      return {
-        id: `${id}`,
-        userId: user.id,
-        name,
-        distance,
-        movingTime: moving_time,
-        elapsedTime: elapsed_time,
-        totalElevationGain: total_elevation_gain,
-        type,
-        startDate: start_date,
-        startDateLocal: start_date_local,
-        visibility: visibility,
-        averageSpeed: average_speed,
-        maxSpeed: max_speed,
-      };
-    });
-    const activities = await this.prisma.activity.createMany({
-      data: payload,
-    });
-    await this.dailyActivityService.manualCreateMany(payload);
-    return activities;
-  }
-
-  async manualCreateActivity(manualCreateActivityDto: ManualCreateActivityDto) {
-    const { stravaId, activityId } = manualCreateActivityDto;
-
-    const owner = await this.prisma.user.findUnique({
-      where: {
-        stravaId: stravaId,
-      },
-    });
-
-    if (!owner) {
-      throw new ForbiddenException('Not Found Owner!');
+        return this.createActivity(owner.id, foundedActivity);
     }
 
-    const { stravaRefreshToken } = owner;
+    async createActivity(userId: number, activityDto) {
+        const {
+            id,
+            name,
+            distance,
+            moving_time,
+            elapsed_time,
+            total_elevation_gain,
+            start_date,
+            start_date_local,
+            type,
+            visibility,
+            average_speed,
+            max_speed,
+            splits_metric,
+            timezone,
+        } = activityDto;
 
-    const tokenRes = await this.authService.resetToken(stravaRefreshToken);
+        const match = timezone.match(/\((GMT[+-]\d{2}:\d{2})\) (.+)/);
+        const timezoneIdentifier: string = match ? match[2] : undefined;
 
-    const { access_token } = tokenRes;
+        if (type !== 'Run') {
+            return;
+        }
 
-    const foundedActivity = await this.findStravaActivity(
-      activityId,
-      access_token,
-    );
+        const foundedActivity = await this.findOneByActivityId(id);
 
-    return this.createActivity(owner.id, foundedActivity);
-  }
+        if (foundedActivity) {
+            throw new ConflictException('Activity already exists!');
+        }
 
-  async deleteOne(stravaId: number, activityId: string) {
-    const owner = await this.prisma.user.findUnique({
-      where: {
-        stravaId,
-      },
-    });
+        const createActivityPayload: Prisma.ActivityCreateInput = {
+            id: `${id}`,
+            name,
+            distance,
+            movingTime: moving_time,
+            elapsedTime: elapsed_time,
+            totalElevationGain: total_elevation_gain,
+            type,
+            startDate: start_date,
+            startDateLocal: start_date_local,
+            visibility: visibility,
+            averageSpeed: average_speed,
+            maxSpeed: max_speed,
+            user: {
+                connect: {
+                    id: userId,
+                },
+            },
+        };
 
-    if (!owner) {
-      throw new ForbiddenException('Not Found Owner!');
-    }
+        if (timezoneIdentifier) {
+            createActivityPayload.timezone = timezoneIdentifier;
+        }
 
-    const activity = await this.prisma.activity.findUnique({
-      where: {
-        id: activityId,
-      },
-    });
-
-    if (!activity) {
-      throw new ForbiddenException('Not Found Activity!');
-    }
-
-    await this.prisma.activity.delete({
-      where: {
-        id: activityId,
-      },
-    });
-
-    await this.updateDailyActivityAfterDeleteActivity(activity, owner.id);
-    await this.updateChallengeDailyActivityAfterDeleteActivity(
-      activity,
-      owner.id,
-    );
-
-    return { success: true };
-  }
-
-  private async updateDailyActivityAfterDeleteActivity(
-    activity: Activity,
-    userId: number,
-  ) {
-    const { distance, movingTime, elapsedTime, startDateLocal, timezone } =
-      activity;
-
-    const [first, second] = getDateRange(
-      `${startDateLocal}`,
-      timezone,
-      DateRangeType.DAY,
-      'ddd MMM DD YYYY HH:mm:ss [GMT]Z',
-    );
-    const dailyActivity = await this.prisma.dailyActivity.findFirst({
-      where: {
-        userId,
-        startDateLocal: {
-          gte: first,
-          lte: second,
-        },
-      },
-    });
-
-    const newDailyDistance = dailyActivity.distance - distance;
-    const newDailyMovingTime = dailyActivity.movingTime - movingTime;
-    const newDailyElapsedTime = dailyActivity.elapsedTime - elapsedTime;
-
-    if (!newDailyDistance || !newDailyMovingTime || !newDailyElapsedTime) {
-      return this.prisma.dailyActivity.deleteMany({
-        where: {
-          userId,
-          startDateLocal: {
-            gte: first,
-            lte: second,
-          },
-        },
-      });
-    }
-    const payload = {
-      ...dailyActivity,
-      movingTime: newDailyMovingTime,
-      distance: newDailyDistance,
-      elapsedTime: newDailyElapsedTime,
-    };
-    return this.prisma.dailyActivity.update({
-      data: payload,
-      where: {
-        id: payload.id,
-      },
-    });
-  }
-
-  private async updateChallengeDailyActivityAfterDeleteActivity(
-    activity: Activity,
-    userId: number,
-  ) {
-    const { distance, movingTime, elapsedTime, startDateLocal, timezone } =
-      activity;
-
-    const [first, second] = getDateRange(
-      `${startDateLocal}`,
-      timezone,
-      DateRangeType.DAY,
-      'ddd MMM DD YYYY HH:mm:ss [GMT]Z',
-    );
-    const challengeActivities =
-      await this.prisma.challengeDailyActivity.findMany({
-        where: {
-          userId,
-          startDateLocal: {
-            gte: first,
-            lte: second,
-          },
-        },
-      });
-
-    if (!challengeActivities?.length) {
-      return [];
-    }
-
-    const payload = challengeActivities.map((ac) => {
-      const newDistance = ac.distance - distance;
-      const newMovingTime = ac.movingTime - movingTime;
-      const newElapsedTime = ac.elapsedTime - elapsedTime;
-      return {
-        ...ac,
-        distance: newDistance,
-        movingTime: newMovingTime,
-        elapsedTime: newElapsedTime,
-      };
-    });
-    return Promise.all(
-      payload.map(async (item) => {
-        return this.prisma.challengeDailyActivity.update({
-          data: item,
-          where: { id: item.id },
+        const activity = await this.prisma.activity.create({
+            data: createActivityPayload,
         });
-      }),
-    );
-  }
+
+        // Add Challenge Activity //
+        await this.activityTaskQueue.add('import', {
+            userId,
+            activity,
+            splits_metric,
+        });
+
+        return activity;
+    }
+
+    async importActivityStatistic(data) {
+        const {userId, activity, splits_metric} = data;
+        if (!activity) {
+            return;
+        }
+
+        await this.dailyActivityService.updateWebhookEvent(activity);
+
+        const {id, distance, movingTime, elapsedTime, startDateLocal, timezone} =
+            activity;
+
+        let activityMinPace =
+            splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
+        let activityMaxPace =
+            splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
+
+        splits_metric.forEach((element) => {
+            const {distance, moving_time} = element;
+            if (distance < 100) {
+                return;
+            }
+
+            const pace = moving_time / (distance / 1000);
+            activityMinPace = Math.min(activityMinPace, pace);
+            activityMaxPace = Math.max(activityMaxPace, pace);
+        });
+
+        const challenges = await this.prisma.challengeUser.findMany({
+            where: {
+                userId,
+                challenge: {
+                    startDate: {
+                        lte: new Date(),
+                    },
+                    endDate: {
+                        gte: new Date(),
+                    },
+                },
+            },
+            select: {
+                id: true,
+                challenge: {
+                    include: {
+                        rule: true,
+                    },
+                },
+            },
+            orderBy: {
+                challengeId: 'asc',
+            },
+        });
+
+        const challengeActivities = challenges.map((element) => {
+            const {challenge} = element;
+            const {rule} = challenge;
+            const {minPace, maxPace, minDistance, maxDistance} = rule;
+            let isValid = true;
+            if (minDistance) {
+                if (distance < minDistance) {
+                    isValid = false;
+                }
+            }
+            if (maxDistance) {
+                if (distance > maxDistance) {
+                    isValid = false;
+                }
+            }
+            if (maxPace) {
+                if (activityMaxPace > maxPace) {
+                    isValid = false;
+                }
+            }
+            if (minPace) {
+                if (activityMinPace < minPace) {
+                    isValid = false;
+                }
+            }
+            return {
+                activityId: `${id}`,
+                challengeId: challenge.id,
+                userId,
+                isValid,
+            };
+        });
+
+        await this.prisma.challengeActivity.createMany({
+            data: challengeActivities,
+        });
+
+        const [first, second] = getDateRange(
+            `${startDateLocal}`,
+            timezone,
+            DateRangeType.DAY,
+        );
+        console.log('check import', id, first, second);
+        const dailyChallengeActivities =
+            await this.prisma.challengeDailyActivity.findMany({
+                where: {
+                    userId,
+                    startDateLocal: {
+                        gte: first,
+                        lte: second,
+                    },
+                },
+                orderBy: {
+                    challengeId: 'asc',
+                },
+            });
+
+        if (!dailyChallengeActivities.length) {
+            console.log('don`t exist case', dailyChallengeActivities);
+            const challengeDailyActivityPayload = challengeActivities.map((item) => {
+                const {challengeId, userId} = item;
+                const validActivity = item.isValid;
+                return {
+                    distance: validActivity ? distance : 0,
+                    movingTime: validActivity ? movingTime : 0,
+                    elapsedTime: validActivity ? elapsedTime : 0,
+                    startDateLocal: first,
+                    userId,
+                    challengeId,
+                };
+            });
+            return this.prisma.challengeDailyActivity.createMany({
+                data: challengeDailyActivityPayload,
+            });
+        }
+        console.log('exist case', dailyChallengeActivities);
+        const updateChallengeDailyActivityPayload = dailyChallengeActivities.map(
+            (item, index) => {
+                const challenge = challengeActivities[index];
+                const isValidChallenge = challenge.isValid;
+                const {challengeId, userId, id} = item;
+                return {
+                    id,
+                    distance: isValidChallenge ? distance + item.distance : item.distance,
+                    movingTime: isValidChallenge
+                        ? movingTime + item.movingTime
+                        : item.movingTime,
+                    elapsedTime: isValidChallenge
+                        ? elapsedTime + item.elapsedTime
+                        : item.elapsedTime,
+                    challengeId,
+                    userId,
+                };
+            },
+        );
+
+        return updateChallengeDailyActivityPayload.map(async (item) => {
+            const updatedChallengeDailyActivity =
+                await this.prisma.challengeDailyActivity.updateMany({
+                    data: item,
+                    where: {
+                        id: item.id,
+                    },
+                });
+            return updatedChallengeDailyActivity;
+        });
+    }
+
+    async createMany(createManyDto: CreateManyActivitiesDto) {
+        const {user, access_token} = createManyDto;
+        const currentDate = new Date();
+
+        // Subtract 30 days
+        currentDate.setDate(currentDate.getDate() - 30);
+        const after = Math.ceil(currentDate.getTime() / 1000);
+        const activityUrl = `${process.env.STRAVA_BASE_URL}/athlete/activities`;
+        const {data} = await firstValueFrom(
+            this.httpService
+                .get(activityUrl, {
+                    params: {
+                        access_token,
+                        after,
+                    },
+                })
+                .pipe(
+                    catchError((error: AxiosError) => {
+                        console.error(error);
+                        throw 'An error happened!';
+                    }),
+                ),
+        );
+
+        const payload = data.map((item) => {
+            const {
+                id,
+                name,
+                distance,
+                moving_time,
+                elapsed_time,
+                total_elevation_gain,
+                start_date,
+                start_date_local,
+                type,
+                visibility,
+                average_speed,
+                max_speed,
+            } = item;
+            return {
+                id: `${id}`,
+                userId: user.id,
+                name,
+                distance,
+                movingTime: moving_time,
+                elapsedTime: elapsed_time,
+                totalElevationGain: total_elevation_gain,
+                type,
+                startDate: start_date,
+                startDateLocal: start_date_local,
+                visibility: visibility,
+                averageSpeed: average_speed,
+                maxSpeed: max_speed,
+            };
+        });
+        const activities = await this.prisma.activity.createMany({
+            data: payload,
+        });
+        await this.dailyActivityService.manualCreateMany(payload);
+        return activities;
+    }
+
+    async manualCreateActivity(manualCreateActivityDto: ManualCreateActivityDto) {
+        const {stravaId, activityId} = manualCreateActivityDto;
+
+        const owner = await this.userService.findByStravaId(stravaId)
+
+        if (!owner) {
+            throw new ForbiddenException('Not Found Owner!');
+        }
+
+        const {stravaRefreshToken} = owner;
+
+        const tokenRes = await this.authService.resetToken(stravaRefreshToken);
+
+        const {access_token} = tokenRes;
+
+        const foundedActivity = await this.findStravaActivity(
+            activityId,
+            access_token,
+        );
+
+        return this.createActivity(owner.id, foundedActivity);
+    }
+
+    async deleteOne(stravaId: number, activityId: string) {
+        const owner = await this.userService.findByStravaId(stravaId)
+
+        if (!owner) {
+            throw new ForbiddenException('Not Found Owner!');
+        }
+
+        const activity = await this.prisma.activity.findUnique({
+            where: {
+                id: activityId,
+            },
+        });
+
+        if (!activity) {
+            throw new ForbiddenException('Not Found Activity!');
+        }
+
+        await this.prisma.activity.delete({
+            where: {
+                id: activityId,
+            },
+        });
+
+        await this.updateDailyActivityAfterDeleteActivity(activity, owner.id);
+        await this.updateChallengeDailyActivityAfterDeleteActivity(
+            activity,
+            owner.id,
+        );
+
+        return {success: true};
+    }
+
+    private async updateDailyActivityAfterDeleteActivity(
+        activity: Activity,
+        userId: number,
+    ) {
+        const {distance, movingTime, elapsedTime, startDateLocal, timezone} =
+            activity;
+
+        const [first, second] = getDateRange(
+            `${startDateLocal}`,
+            timezone,
+            DateRangeType.DAY,
+            'ddd MMM DD YYYY HH:mm:ss [GMT]Z',
+        );
+        const dailyActivity = await this.prisma.dailyActivity.findFirst({
+            where: {
+                userId,
+                startDateLocal: {
+                    gte: first,
+                    lte: second,
+                },
+            },
+        });
+
+        const newDailyDistance = dailyActivity.distance - distance;
+        const newDailyMovingTime = dailyActivity.movingTime - movingTime;
+        const newDailyElapsedTime = dailyActivity.elapsedTime - elapsedTime;
+
+        if (!newDailyDistance || !newDailyMovingTime || !newDailyElapsedTime) {
+            return this.prisma.dailyActivity.deleteMany({
+                where: {
+                    userId,
+                    startDateLocal: {
+                        gte: first,
+                        lte: second,
+                    },
+                },
+            });
+        }
+        const payload = {
+            ...dailyActivity,
+            movingTime: newDailyMovingTime,
+            distance: newDailyDistance,
+            elapsedTime: newDailyElapsedTime,
+        };
+        return this.prisma.dailyActivity.update({
+            data: payload,
+            where: {
+                id: payload.id,
+            },
+        });
+    }
+
+    private async updateChallengeDailyActivityAfterDeleteActivity(
+        activity: Activity,
+        userId: number,
+    ) {
+        const {distance, movingTime, elapsedTime, startDateLocal, timezone} =
+            activity;
+
+        const [first, second] = getDateRange(
+            `${startDateLocal}`,
+            timezone,
+            DateRangeType.DAY,
+            'ddd MMM DD YYYY HH:mm:ss [GMT]Z',
+        );
+        const challengeActivities =
+            await this.prisma.challengeDailyActivity.findMany({
+                where: {
+                    userId,
+                    startDateLocal: {
+                        gte: first,
+                        lte: second,
+                    },
+                },
+            });
+
+        if (!challengeActivities?.length) {
+            return [];
+        }
+
+        const payload = challengeActivities.map((ac) => {
+            const newDistance = ac.distance - distance;
+            const newMovingTime = ac.movingTime - movingTime;
+            const newElapsedTime = ac.elapsedTime - elapsedTime;
+            return {
+                ...ac,
+                distance: newDistance,
+                movingTime: newMovingTime,
+                elapsedTime: newElapsedTime,
+            };
+        });
+        return Promise.all(
+            payload.map(async (item) => {
+                return this.prisma.challengeDailyActivity.update({
+                    data: item,
+                    where: {id: item.id},
+                });
+            }),
+        );
+    }
 }

@@ -12,7 +12,7 @@ datasource db {
 
 model User {
   id                     Int                      @id @unique @default(autoincrement())
-  stravaId               Int                      @unique @map(name: "strava_id")
+  stravaId               Int?                     @map(name: "strava_id")
   googleId               String?                  @unique @map(name: "google_id")
   email                  String?                  @unique @map(name: "email")
   password               String?                  @map(name: "password")
