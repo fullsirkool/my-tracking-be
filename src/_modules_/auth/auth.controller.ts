@@ -35,7 +35,6 @@ export class AuthController {
     }
 
     @Post('/signup')
-    @UseInterceptors(AuthTransformInterceptor)
     signUp(@Body() signUpDto: SignUpDto) {
         return this.authService.create(signUpDto);
     }
@@ -73,5 +72,10 @@ export class AuthController {
         @Body() completeUserDto: CompleteUserDto,
     ) {
         return this.authService.complete(userId, completeUserDto);
+    }
+
+    @Patch('/verify/:capcha')
+    async verify(@Param('capcha') capcha: string) {
+        return this.authService.verify(capcha);
     }
 }

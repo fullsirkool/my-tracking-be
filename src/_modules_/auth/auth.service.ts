@@ -24,6 +24,8 @@ import {JwtService} from '@nestjs/jwt';
 import {exclude} from 'src/utils/transform.utils';
 import {ActivityService} from '../activity/activity.service';
 import {User} from '@prisma/client';
+import {MailService} from "../mail/mail.service";
+import * as process from "process";
 
 @Injectable()
 export class AuthService {
@@ -32,6 +34,7 @@ export class AuthService {
         private readonly userService: UserService,
         private readonly httpService: HttpService,
         private readonly adminService: AdminService,
+        private readonly mailService: MailService,
         @Inject(forwardRef(() => ActivityService))
         private readonly activityService: ActivityService,
         private readonly jwtService: JwtService,
@@ -299,7 +302,7 @@ export class AuthService {
         const saltOrRounds = +process.env.USER_SALT;
         const hash = await bcrypt.hash(password, saltOrRounds);
 
-        await this.prisma.user.create({
+        const createdUser = await this.prisma.user.create({
             data: {
                 email,
                 password: hash,
@@ -308,7 +311,29 @@ export class AuthService {
                 sex
             }
         });
-        
+
+        const {capcha} = createdUser
+        const url = `${process.env.APP_URL}/confirm/${capcha}`
+
+        await this.mailService.confirmAccount({to: email, url, subject: 'Welcome To My Tracking'})
+
         return {success: true}
+    }
+
+    async verify(capcha: string) {
+        const findUser = await this.prisma.user.findFirst({
+            where: {capcha},
+        });
+        if (!findUser) {
+            throw new NotFoundException('Could not find account with capcha!');
+        }
+        await this.prisma.user.update({
+            where: {id: findUser.id},
+            data: {
+                capcha: '',
+                activated: true,
+            },
+        });
+        return {success: true};
     }
 }

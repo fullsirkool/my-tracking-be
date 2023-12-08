@@ -14,6 +14,7 @@ import { ChallengeUserModule } from './_modules_/challenge-user/challenge-user.m
 import { FileModule } from './_modules_/file/file.module';
 import { FirebaseModule } from './_modules_/firebase/firebase.module';
 import { BullModule } from '@nestjs/bull';
+import { MailModule } from './_modules_/mail/mail.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { BullModule } from '@nestjs/bull';
         port: 6379,
       },
     }),
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

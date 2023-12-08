@@ -24,6 +24,7 @@ model User {
   refreshToken           String?                  @map(name: "refresh_token")
   tokenExpiresAt         String?                  @map(name: "token_expires")
   capcha                 String?                  @default(uuid())
+  activated              Boolean                  @default(false)
   activities             Activity[]
   challenges             Challenge[]
   challengeUsers         ChallengeUser[]
