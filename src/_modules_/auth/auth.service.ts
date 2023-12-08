@@ -330,7 +330,7 @@ export class AuthService {
         return this.prisma.user.update({
             where: {id: findUser.id},
             data: {
-                capcha: '',
+                capcha: null,
                 activated: true,
             },
         });
