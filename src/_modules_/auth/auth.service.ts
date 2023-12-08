@@ -327,13 +327,12 @@ export class AuthService {
         if (!findUser) {
             throw new NotFoundException('Could not find account with capcha!');
         }
-        await this.prisma.user.update({
+        return this.prisma.user.update({
             where: {id: findUser.id},
             data: {
                 capcha: '',
                 activated: true,
             },
         });
-        return {success: true};
     }
 }

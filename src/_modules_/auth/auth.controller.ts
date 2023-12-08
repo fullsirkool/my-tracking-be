@@ -75,6 +75,7 @@ export class AuthController {
     }
 
     @Patch('/verify/:capcha')
+    @UseInterceptors(UserTransformInterceptor)
     async verify(@Param('capcha') capcha: string) {
         return this.authService.verify(capcha);
     }
