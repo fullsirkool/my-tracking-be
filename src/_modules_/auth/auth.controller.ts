@@ -9,7 +9,7 @@ import {
     Patch,
 } from '@nestjs/common';
 import {AuthService} from './auth.service';
-import {CompleteUserDto, RenewDto, SignInAdminDto, SignUpDto} from './auth.dto';
+import {CompleteUserDto, RenewDto, SignInAdminDto, SignInDto, SignUpDto} from './auth.dto';
 import {LocalAuthGuard} from 'src/guards/local-auth.guard';
 import {Claims, UserClaims} from 'src/types/auth.types';
 import {ApiBody, ApiTags} from '@nestjs/swagger';
@@ -27,16 +27,23 @@ export class AuthController {
     constructor(private readonly authService: AuthService) {
     }
 
-    @Post('/signin/:code')
+    @Post('/connect/:code')
     @UseInterceptors(AuthTransformInterceptor)
-    async signin(@Param('code') code: string) {
-        const signInResponse = await this.authService.signIn(code);
+    async connectStrava(@Param('code') code: string) {
+        const signInResponse = await this.authService.connectStrava(code);
         return signInResponse;
     }
 
     @Post('/signup')
     signUp(@Body() signUpDto: SignUpDto) {
         return this.authService.create(signUpDto);
+    }
+
+    @ApiBody({type: SignInDto})
+    @Post('/sign-in')
+    @UseInterceptors(AuthTransformInterceptor)
+    async signIn(@Body() signInDto: SignInDto) {
+        return this.authService.signIn(signInDto);
     }
 
     @UseGuards(LocalAuthGuard)

@@ -27,6 +27,13 @@ export class UserService {
         return findUser;
     }
 
+    async findByEmail(email: string) {
+        if (!email) {
+            throw new BadRequestException('email is required!');
+        }
+        return this.prisma.user.findUnique({where: {email}})
+    }
+
     async changeToken(
         stravaId: number,
         changeTokenDto: ChangeTokenDto,

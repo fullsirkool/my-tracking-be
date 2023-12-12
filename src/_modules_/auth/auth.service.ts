@@ -12,7 +12,7 @@ import {
 import {
     AuthDto,
     CompleteUserDto,
-    SignInAdminDto,
+    SignInAdminDto, SignInDto,
     SignUpDto,
 } from './auth.dto';
 import {HttpService} from '@nestjs/axios';
@@ -44,7 +44,7 @@ export class AuthService {
     ) {
     }
 
-    async signIn(code: string): Promise<AuthDto> {
+    async connectStrava(code: string): Promise<AuthDto> {
         const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
         const {data} = await firstValueFrom(
             this.httpService
@@ -341,5 +341,27 @@ export class AuthService {
                 activated: true,
             },
         });
+    }
+
+    async signIn(signInDto: SignInDto) {
+        const {email, password} = signInDto
+        const user = await this.userService.findByEmail(email)
+        if (!user) {
+            throw new NotFoundException('Not found user!')
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            throw new UnauthorizedException('Email or password is incorrect!')
+        }
+
+        const {accessToken, refreshToken} = await this.generateTokens(user);
+        return {
+            user,
+            accessToken,
+            refreshToken,
+            expireTime: +process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
+        };
     }
 }
