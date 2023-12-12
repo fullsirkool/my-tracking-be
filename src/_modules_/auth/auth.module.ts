@@ -10,6 +10,9 @@ import {JwtModule} from '@nestjs/jwt';
 import {ActivityModule} from '../activity/activity.module';
 import {JwtRefreshStrategy} from 'src/strategies/jwt-refresh.strategy';
 import {MailModule} from "../mail/mail.module";
+import {BullModule} from "@nestjs/bull";
+import {Queues} from "../../types/queue.type";
+import {AuthConsumer} from "./auth.consumer";
 
 @Module({
     imports: [
@@ -20,9 +23,12 @@ import {MailModule} from "../mail/mail.module";
         JwtModule,
         MailModule,
         forwardRef(() => ActivityModule),
+        BullModule.registerQueue({
+            name: Queues.auth,
+        }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, LocalStrategy, JwtRefreshStrategy],
+    providers: [AuthService, LocalStrategy, JwtRefreshStrategy, AuthConsumer],
     exports: [AuthService],
 })
 export class AuthModule {

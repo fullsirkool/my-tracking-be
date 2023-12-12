@@ -26,6 +26,8 @@ import {ActivityService} from '../activity/activity.service';
 import {User} from '@prisma/client';
 import {MailService} from "../mail/mail.service";
 import * as process from "process";
+import {InjectQueue} from "@nestjs/bull";
+import {Queue} from "bull";
 
 @Injectable()
 export class AuthService {
@@ -38,6 +40,7 @@ export class AuthService {
         @Inject(forwardRef(() => ActivityService))
         private readonly activityService: ActivityService,
         private readonly jwtService: JwtService,
+        @InjectQueue('auth') private readonly authTaskQueue: Queue,
     ) {
     }
 
@@ -315,7 +318,11 @@ export class AuthService {
         const {capcha} = createdUser
         const url = `${process.env.APP_URL}/confirm/${capcha}`
 
-        await this.mailService.confirmAccount({to: email, url, subject: 'Welcome To My Tracking'})
+
+        await this.authTaskQueue.add('send-mail', {
+            email,
+            url,
+        });
 
         return {success: true}
     }
