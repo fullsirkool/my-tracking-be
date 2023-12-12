@@ -11,6 +11,6 @@ export class UserController {
   @UseInterceptors(UserTransformInterceptor)
   @Get('/:id')
   async find(@Param('id') id: string) {
-    return this.userService.findByStravaId(+id);
+    return this.userService.findOne(+id);
   }
 }
