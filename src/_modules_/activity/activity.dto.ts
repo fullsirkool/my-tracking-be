@@ -30,7 +30,7 @@ export class FindMonthlyActivityDto {
 
   @ApiProperty()
   @IsInteger
-  stravaId: number;
+  id: number;
 }
 
 export class CreateManyActivitiesDto {
@@ -45,7 +45,7 @@ export class FindActivityDto extends BasePagingDto {
 
   @ApiProperty()
   @IsInteger
-  stravaId: number;
+  id: number;
 }
 
 export class FindActivityResponse extends BasePagingResponse<Activity> {}

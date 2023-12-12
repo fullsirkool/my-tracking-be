@@ -34,6 +34,13 @@ export class UserService {
         return this.prisma.user.findUnique({where: {email}})
     }
 
+    async findOne(id: number) {
+        if (!id) {
+            throw new BadRequestException('id is required!');
+        }
+        return this.prisma.user.findUnique({where: {id}})
+    }
+
     async changeToken(
         stravaId: number,
         changeTokenDto: ChangeTokenDto,

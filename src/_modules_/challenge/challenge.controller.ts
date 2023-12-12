@@ -63,24 +63,24 @@ export class ChallengeController {
     return await this.challengeService.findUserForChallenge(id);
   }
 
-  @Get('/user/joined/:stravaId')
+  @Get('/user/joined/:id')
   async findJoinedChallengesByUser(
-    @Param('stravaId') stravaId: number,
+    @Param('id') id: number,
     @Query() pagination: BasePagingDto,
   ) {
     return await this.challengeService.findJoinedChallengesByUser(
-      stravaId,
+        id,
       pagination,
     );
   }
 
-  @Get('/user/created/:stravaId')
+  @Get('/user/created/:id')
   async findCreatedChallengesByUser(
-    @Param('stravaId') stravaId: number,
+    @Param('id') id: number,
     @Query() pagination: BasePagingDto,
   ) {
     return await this.challengeService.findCreatedChallengesByUser(
-      stravaId,
+        id,
       pagination,
     );
   }

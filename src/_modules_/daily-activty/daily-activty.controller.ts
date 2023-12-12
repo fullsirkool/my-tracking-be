@@ -9,6 +9,6 @@ export class DailyActivityController {
 
   @Post('/transform/:userId')
   async transform(@Param('userId') userId: number) {
-    return await this.dailyActivityService.transform(+userId);
+    return this.dailyActivityService.transform(+userId);
   }
 }

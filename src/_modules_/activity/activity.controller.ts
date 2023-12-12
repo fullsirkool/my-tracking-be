@@ -58,15 +58,14 @@ export class ActivityController {
   async findMonthlyActivity(
     @Query() findMonthlyActivityDto: FindMonthlyActivityDto,
   ) {
-    return await this.activityService.findMonthlyActivity(
+    return this.activityService.findMonthlyActivity(
       findMonthlyActivityDto,
     );
   }
 
-  @Get('/statistics/:stravaId')
-  // @UseInterceptors(ActivityTransformInterceptor)
-  async findStatistics(@Param('stravaId') stravaId: number) {
-    return await this.activityService.getTotalStatistics(+stravaId);
+  @Get('/statistics/:id')
+  async findStatistics(@Param('id') id: number) {
+    return await this.activityService.getTotalStatistics(+id);
   }
 
   @Get()

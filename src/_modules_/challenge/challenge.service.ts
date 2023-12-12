@@ -541,10 +541,10 @@ export class ChallengeService {
     }
 
     async findJoinedChallengesByUser(
-        stravaId: number,
+        id: number,
         pagination: BasePagingDto,
     ): Promise<BasePagingResponse<Challenge>> {
-        const user = await this.userService.findByStravaId(stravaId)
+        const user = await this.userService.findOne(id)
 
         if (!user) {
             throw new NotFoundException('Not found user!');
@@ -579,10 +579,10 @@ export class ChallengeService {
     }
 
     async findCreatedChallengesByUser(
-        stravaId: number,
+        id: number,
         pagination: BasePagingDto,
     ): Promise<BasePagingResponse<Challenge>> {
-        const user = await this.userService.findByStravaId(stravaId)
+        const user = await this.userService.findOne(id)
 
         if (!user) {
             throw new NotFoundException('Not found user!');

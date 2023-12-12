@@ -39,7 +39,7 @@ export class ActivityService {
     }
 
     async find(findActivityDto: FindActivityDto): Promise<FindActivityResponse> {
-        const {page, size, date, stravaId} = findActivityDto;
+        const {page, size, date, id} = findActivityDto;
         const skip = (page - 1) * size;
 
         const findActivityCondition: Prisma.ActivityWhereInput = {};
@@ -63,9 +63,9 @@ export class ActivityService {
             };
         }
 
-        if (stravaId) {
+        if (id) {
             findActivityCondition.user = {
-                stravaId,
+                id,
             };
         }
 
@@ -120,19 +120,17 @@ export class ActivityService {
     }
 
     async findMonthlyActivity(findMonthlyActivityDto: FindMonthlyActivityDto) {
-        const {date, stravaId} = findMonthlyActivityDto;
+        const {date, id} = findMonthlyActivityDto;
 
-        if (!stravaId) {
+        if (!id) {
             throw new ForbiddenException('Strava ID Required!');
         }
 
-        const owner = await this.userService.findByStravaId(+stravaId);
+        const owner = await this.userService.findOne(+id);
 
         if (!owner) {
             throw new ForbiddenException('Not Found Owner!');
         }
-
-        const {id} = owner;
 
         const requestDate = new Date(date);
         const start = new Date(
@@ -148,18 +146,17 @@ export class ActivityService {
         return this.dailyActivityService.getMonthlyActivity(id, start, end);
     }
 
-    async getTotalStatistics(stravaId: number) {
-        if (!stravaId) {
+    async getTotalStatistics(id: number) {
+        if (!id) {
             throw new ForbiddenException('Strava ID Required!');
         }
 
-        const owner = await this.userService.findByStravaId(+stravaId);
+        const owner = await this.userService.findOne(+id);
 
         if (!owner) {
             throw new ForbiddenException('Not Found Owner!');
         }
 
-        const {id} = owner;
         const {_sum, _count} = await this.prisma.activity.aggregate({
             _sum: {
                 distance: true,
@@ -169,7 +166,7 @@ export class ActivityService {
                 id: true,
             },
             where: {
-                userId: id,
+                userId: owner.id,
             },
         });
 
