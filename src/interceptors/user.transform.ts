@@ -15,8 +15,8 @@ export class UserTransformInterceptor implements NestInterceptor {
         if (!data) {
           return {};
         }
-        const { id, stravaId, firstName, lastName, profile, email } = data;
-        return { id, stravaId, firstName, lastName, profile, email };
+        const { id, stravaId, firstName, lastName, profile, email, activated } = data;
+        return { id, stravaId, firstName, lastName, profile, email, activated };
       }),
     );
   }

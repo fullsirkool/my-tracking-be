@@ -30,8 +30,7 @@ export class AuthController {
     @Post('/connect/:code')
     @UseInterceptors(AuthTransformInterceptor)
     async connectStrava(@Param('code') code: string) {
-        const signInResponse = await this.authService.connectStrava(code);
-        return signInResponse;
+        return this.authService.connectStrava(code);
     }
 
     @Post('/signup')

@@ -356,6 +356,12 @@ export class AuthService {
             throw new UnauthorizedException('Email or password is incorrect!')
         }
 
+        const { activated } = user
+
+        if (!activated) {
+            throw new UnauthorizedException('Your account has not verified. Please check your email to active your account!')
+        }
+
         const {accessToken, refreshToken} = await this.generateTokens(user);
         return {
             user,
