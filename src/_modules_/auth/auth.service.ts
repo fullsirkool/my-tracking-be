@@ -44,7 +44,7 @@ export class AuthService {
     ) {
     }
 
-    async connectStrava(code: string): Promise<AuthDto> {
+    async connectStrava(code: string, userId: number) {
         const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
         const {data} = await firstValueFrom(
             this.httpService
@@ -67,59 +67,44 @@ export class AuthService {
                     }),
                 ),
         );
-        const {refresh_token, access_token} = data;
+        const {refresh_token} = data;
         const {
             id,
             firstname,
             lastname,
-            bio,
-            city,
-            state,
-            country,
-            sex,
             profile_medium,
             profile,
         } = data.athlete;
+
+        const connectedUser = this.userService.findByStravaId(id)
+
+        if (connectedUser) {
+            throw new ConflictException('This strava account has already connected. Please check again!')
+        }
+
         const sendUser = {
             stravaId: id,
             firstName: firstname,
             lastName: lastname,
-            bio,
-            city,
-            state,
-            country,
-            sex,
             profileMedium: profile_medium,
             profile,
             stravaRefreshToken: refresh_token,
         };
-        const findUser = await this.userService.findByStravaId(id);
-        if (findUser) {
-            const changeTokenDto = {
-                stravaRefreshToken: refresh_token,
-            };
-            const user = await this.userService.changeToken(id, changeTokenDto);
-            const {accessToken, refreshToken} = await this.generateTokens(user);
-            return {
-                user,
-                accessToken,
-                refreshToken,
-                expireTime: +process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
-            };
+        const findUser = await this.prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+
+        if (!findUser) {
+            throw new NotFoundException('Not Found User!')
         }
 
-        const user = await this.userService.create(sendUser);
-        await this.activityService.createMany({
-            user,
-            access_token,
+        await this.prisma.user.update({
+            where: {id: findUser.id},
+            data: sendUser,
         });
-        const {accessToken, refreshToken} = await this.generateTokens(user);
-        return {
-            user,
-            accessToken,
-            refreshToken,
-            expireTime: +process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
-        };
+        return {success: true};
     }
 
     async resetToken(stravaRefreshToken: string) {
@@ -356,7 +341,7 @@ export class AuthService {
             throw new UnauthorizedException('Email or password is incorrect!')
         }
 
-        const { activated } = user
+        const {activated} = user
 
         if (!activated) {
             throw new UnauthorizedException('Your account has not verified. Please check your email to active your account!')
