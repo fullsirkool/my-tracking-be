@@ -72,7 +72,6 @@ export class AuthService {
             id,
             firstname,
             lastname,
-            profile_medium,
             profile,
         } = data.athlete;
 
@@ -86,7 +85,6 @@ export class AuthService {
             stravaId: id,
             firstName: firstname,
             lastName: lastname,
-            profileMedium: profile_medium,
             profile,
             stravaRefreshToken: refresh_token,
         };
