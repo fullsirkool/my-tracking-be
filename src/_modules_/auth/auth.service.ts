@@ -76,10 +76,10 @@ export class AuthService {
             profile,
         } = data.athlete;
 
-        const connectedUser = this.userService.findByStravaId(id)
+        const connectedUser = await this.userService.findByStravaId(id)
 
         if (connectedUser) {
-            throw new ConflictException('This strava account has already connected. Please check again!')
+            throw new ConflictException(`This strava account has already connected. Please check again!`)
         }
 
         const sendUser = {
