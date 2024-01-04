@@ -372,12 +372,7 @@ export class AuthService {
         const {capcha} = user
 
         const url = `${process.env.APP_URL}/confirm/${capcha}`
-
-        await this.authTaskQueue.add('send-mail', {
-            email,
-            url,
-        });
-
+        await this.mailService.confirmAccount({to: email, url, subject: 'Welcome To My Tracking'})
         return {success: true}
     }
 }
