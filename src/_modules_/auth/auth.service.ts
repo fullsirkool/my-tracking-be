@@ -355,4 +355,29 @@ export class AuthService {
             expireTime: +process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
         };
     }
+
+    async resendEmail(signInDto: SignInDto) {
+        const {email, password} = signInDto
+        const user = await this.userService.findByEmail(email)
+        if (!user) {
+            throw new NotFoundException('Not found user!')
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            throw new UnauthorizedException('Email or password is incorrect!')
+        }
+
+        const {capcha} = user
+
+        const url = `${process.env.APP_URL}/confirm/${capcha}`
+
+        await this.authTaskQueue.add('send-mail', {
+            email,
+            url,
+        });
+
+        return {success: true}
+    }
 }

@@ -85,4 +85,11 @@ export class AuthController {
     async verify(@Param('capcha') capcha: string) {
         return this.authService.verify(capcha);
     }
+
+    @ApiBody({type: SignInDto})
+    @Post('/resend-email')
+    async resendEmail(@Body() signInDto: SignInDto) {
+        return this.authService.resendEmail(signInDto);
+    }
+
 }
