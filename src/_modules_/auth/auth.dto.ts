@@ -1,6 +1,7 @@
 import {ApiProperty} from '@nestjs/swagger';
 import {IsEmail, IsNotEmpty, IsStrongPassword} from 'class-validator';
 import {UserClaims} from 'src/types/auth.types';
+import {OptionalProperty} from "../../decorators/validator.decorator";
 
 export class AuthDto {
     expireTime: number;
@@ -108,4 +109,12 @@ export class SignInDto {
     })
     @IsNotEmpty()
     password: string;
+}
+
+export class SignInGoogleDto {
+    @ApiProperty({ required: true, description: 'This is required field' })
+    @IsNotEmpty()
+    token: string;
+    @OptionalProperty()
+    deviceToken: string;
 }

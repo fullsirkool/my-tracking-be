@@ -13,6 +13,7 @@ import {MailModule} from "../mail/mail.module";
 import {BullModule} from "@nestjs/bull";
 import {Queues} from "../../types/queue.type";
 import {AuthConsumer} from "./auth.consumer";
+import {FirebaseModule} from "../firebase/firebase.module";
 
 @Module({
     imports: [
@@ -22,6 +23,7 @@ import {AuthConsumer} from "./auth.consumer";
         PassportModule,
         JwtModule,
         MailModule,
+        FirebaseModule,
         forwardRef(() => ActivityModule),
         BullModule.registerQueue({
             name: Queues.auth,

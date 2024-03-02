@@ -7,12 +7,12 @@ import {
     UnauthorizedException,
     forwardRef,
     NotFoundException,
-    ConflictException,
+    ConflictException, NotAcceptableException,
 } from '@nestjs/common';
 import {
     AuthDto,
     CompleteUserDto,
-    SignInAdminDto, SignInDto,
+    SignInAdminDto, SignInDto, SignInGoogleDto,
     SignUpDto,
 } from './auth.dto';
 import {HttpService} from '@nestjs/axios';
@@ -28,6 +28,7 @@ import {MailService} from "../mail/mail.service";
 import * as process from "process";
 import {InjectQueue} from "@nestjs/bull";
 import {Queue} from "bull";
+import {FirebaseService} from "../firebase/firebase.service";
 
 @Injectable()
 export class AuthService {
@@ -41,6 +42,7 @@ export class AuthService {
         private readonly activityService: ActivityService,
         private readonly jwtService: JwtService,
         @InjectQueue('auth') private readonly authTaskQueue: Queue,
+        private readonly firebaseService: FirebaseService,
     ) {
     }
 
@@ -372,5 +374,43 @@ export class AuthService {
         const url = `${process.env.APP_URL}/confirm/${capcha}`
         await this.mailService.confirmAccount({to: email, url, subject: 'Welcome To My Tracking'})
         return {success: true}
+    }
+
+    async signInGoogle(signInGoogleDto: SignInGoogleDto){
+        const {token, deviceToken} = signInGoogleDto
+        const firebaseAuth = this.firebaseService.getFirebaseApp().auth();
+        const decodedToken = await firebaseAuth.verifyIdToken(token);
+
+        if (!decodedToken) {
+            throw new NotAcceptableException('Failed!');
+        }
+
+        const { email, uid } = decodedToken;
+
+        const userProfile = await firebaseAuth.getUser(uid);
+
+        const { displayName, photoURL } = userProfile;
+
+        let user = await this.prisma.user.findUnique({ where: { email } });
+
+
+        if (!user) {
+            user = await this.prisma.user.create({
+                data: {
+                    email,
+                    firstName: displayName,
+                    profile: photoURL,
+                    activated: true,
+                }
+            })
+        }
+
+        const { accessToken, refreshToken } = await this.generateTokens(user);
+
+        return {
+            user,
+            accessToken,
+            refreshToken,
+        };
     }
 }

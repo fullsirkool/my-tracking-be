@@ -9,7 +9,7 @@ import {
     Patch,
 } from '@nestjs/common';
 import {AuthService} from './auth.service';
-import {CompleteUserDto, RenewDto, SignInAdminDto, SignInDto, SignUpDto} from './auth.dto';
+import {CompleteUserDto, RenewDto, SignInAdminDto, SignInDto, SignInGoogleDto, SignUpDto} from './auth.dto';
 import {LocalAuthGuard} from 'src/guards/local-auth.guard';
 import {Claims, UserClaims} from 'src/types/auth.types';
 import {ApiBody, ApiTags} from '@nestjs/swagger';
@@ -90,6 +90,12 @@ export class AuthController {
     @Post('/resend-email')
     async resendEmail(@Body() signInDto: SignInDto) {
         return this.authService.resendEmail(signInDto);
+    }
+
+    @ApiBody({type: SignInGoogleDto})
+    @Post('/google/sign-in')
+    async signInGoogle(@Body() signInGoogleDto: SignInGoogleDto) {
+        return this.authService.signInGoogle(signInGoogleDto);
     }
 
 }
