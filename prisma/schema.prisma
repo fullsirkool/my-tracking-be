@@ -36,10 +36,6 @@ model User {
   @@map("user")
 }
 
-model UserToken {
-
-}
-
 model Admin {
   id           Int         @id @unique @default(autoincrement())
   username     String      @unique
@@ -48,10 +44,6 @@ model Admin {
   refreshToken String?     @map("refresh_token")
 
   @@map("admin")
-}
-
-model AdminToken {
-
 }
 
 model Point {
