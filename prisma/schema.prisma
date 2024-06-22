@@ -36,6 +36,24 @@ model User {
   @@map("user")
 }
 
+model UserToken {
+
+}
+
+model Admin {
+  id           Int         @id @unique @default(autoincrement())
+  username     String      @unique
+  password     String
+  status       AdminStatus @default(INACTIVE)
+  refreshToken String?     @map("refresh_token")
+
+  @@map("admin")
+}
+
+model AdminToken {
+
+}
+
 model Point {
   userId Int  @id @unique @map(name: "user_id")
   points Int
@@ -75,16 +93,6 @@ model DailyActivity {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("daily_activity")
-}
-
-model Admin {
-  id           Int         @id @unique @default(autoincrement())
-  username     String      @unique
-  password     String
-  status       AdminStatus @default(INACTIVE)
-  refreshToken String?     @map("refresh_token")
-
-  @@map("admin")
 }
 
 model Challenge {

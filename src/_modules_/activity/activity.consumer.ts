@@ -11,4 +11,9 @@ export class ActivityConsumer {
   async handleCreateActivity({ data }: Job) {
     return this.activityService.importActivityStatistic(data);
   }
+
+  @Process(ActivityJobs.importFirst)
+  async handleImportActivityWhenConnect({ data }: Job) {
+    return this.activityService.createMany(data);
+  }
 }

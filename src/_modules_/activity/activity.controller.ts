@@ -58,9 +58,7 @@ export class ActivityController {
   async findMonthlyActivity(
     @Query() findMonthlyActivityDto: FindMonthlyActivityDto,
   ) {
-    return this.activityService.findMonthlyActivity(
-      findMonthlyActivityDto,
-    );
+    return this.activityService.findMonthlyActivity(findMonthlyActivityDto);
   }
 
   @Get('/statistics/:id')
@@ -72,6 +70,7 @@ export class ActivityController {
   async find(@Query() findActivityDto: FindActivityDto) {
     return this.activityService.find(findActivityDto);
   }
+
   @Delete('/:id')
   async deleteOne(
     @Param('id') id: string,

@@ -53,6 +53,7 @@ export class ChallengeController {
   ): Promise<FindChallengeResponse> {
     return await this.challengeService.find(findChallengeDto);
   }
+
   @Get('/:id')
   async findOne(@Param('id') id: number): Promise<Challenge> {
     return await this.challengeService.findOne(+id);
@@ -69,7 +70,7 @@ export class ChallengeController {
     @Query() pagination: BasePagingDto,
   ) {
     return await this.challengeService.findJoinedChallengesByUser(
-        id,
+      id,
       pagination,
     );
   }
@@ -80,7 +81,7 @@ export class ChallengeController {
     @Query() pagination: BasePagingDto,
   ) {
     return await this.challengeService.findCreatedChallengesByUser(
-        id,
+      id,
       pagination,
     );
   }
