@@ -28,6 +28,9 @@ import { FirebaseModule } from '../firebase/firebase.module';
     BullModule.registerQueue({
       name: Queues.auth,
     }),
+    BullModule.registerQueue({
+      name: Queues.activity,
+    }),
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtRefreshStrategy, AuthConsumer],
