@@ -183,13 +183,17 @@ export class AuthService {
         if (!foundToken) {
             throw new UnauthorizedException('Not found token');
         }
-        const isValidToken = moment.tz('Asia/Ho_Chi_Minh').isSameOrAfter(foundToken.expiredDate)
-        if (isValidToken) {
+        const isValidToken = moment().tz('Asia/Ho_Chi_Minh').isSameOrBefore(foundToken.expiredDate)
+        if (!isValidToken) {
+            await this.prisma.userToken.delete({
+                where: {
+                    id: foundToken.id
+                }
+            })
             throw new UnauthorizedException('Token expired!');
         }
 
-        const tokens = await this.generateTokens(user);
-        return tokens;
+        return this.generateTokens(user);
     }
 
     private async generateAdminTokens(claims: Claims) {
@@ -219,6 +223,18 @@ export class AuthService {
         };
     }
 
+    private destructExpiredDateToken(value) {
+        const dateRangeMapping = {
+            "d": 'days',
+            "w": 'weeks',
+            "m": 'months',
+            "y": 'years'
+        }
+        const numberPart = parseInt(value, 10);
+        const letterPart = value.slice(numberPart.toString().length);
+        return {number: numberPart, range: dateRangeMapping[letterPart]}
+    }
+
     private async generateTokens(user: User) {
         const {id, stravaId, firstName, lastName, profile} = user;
         const accessToken = this.jwtService.sign(
@@ -237,7 +253,9 @@ export class AuthService {
             },
         );
 
-        const expiredDate = moment.tz('Asia/Ho_Chi_Minh').add(process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME).toDate()
+        const {number, range} = this.destructExpiredDateToken(process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME)
+
+        const expiredDate = moment.tz('Asia/Ho_Chi_Minh').add(number, range).toDate()
 
         await this.prisma.userToken.create({
             data: {
