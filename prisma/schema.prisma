@@ -21,8 +21,6 @@ model User {
   sex                    String?
   profile                String?                  @map(name: "profile_long")
   stravaRefreshToken     String?                  @map(name: "strava_refresh_token")
-  refreshToken           String?                  @map(name: "refresh_token")
-  tokenExpiresAt         String?                  @map(name: "token_expires")
   capcha                 String?                  @default(uuid())
   activated              Boolean                  @default(false)
   activities             Activity[]
@@ -32,18 +30,40 @@ model User {
   challengeActivity      ChallengeActivity[]
   challengeDailyActivity ChallengeDailyActivity[]
   point                  Point?
+  userTokens             UserToken[]
 
   @@map("user")
 }
 
+model UserToken {
+  id           Int      @id @unique @default(autoincrement())
+  userId       Int      @map("user_id")
+  refreshToken String   @map("refresh_token")
+  expiredDate  DateTime @map("expired_date")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_token")
+}
+
 model Admin {
-  id           Int         @id @unique @default(autoincrement())
-  username     String      @unique
+  id           Int          @id @unique @default(autoincrement())
+  username     String       @unique
   password     String
-  status       AdminStatus @default(INACTIVE)
-  refreshToken String?     @map("refresh_token")
+  status       AdminStatus  @default(INACTIVE)
+  refreshToken String?      @map("refresh_token")
+  adminTokens  AdminToken[]
 
   @@map("admin")
+}
+
+model AdminToken {
+  id           Int      @id @unique @default(autoincrement())
+  adminId      Int      @map("admin_id")
+  refreshToken String   @map("refresh_token")
+  expiredDate  DateTime @map("expired_date")
+  admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("admin_token")
 }
 
 model Point {
