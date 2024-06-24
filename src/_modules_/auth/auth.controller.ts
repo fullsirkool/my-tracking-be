@@ -12,15 +12,12 @@ import { AuthService } from './auth.service';
 import {
   CompleteUserDto,
   RenewDto,
-  SignInAdminDto,
   SignInDto,
   SignInGoogleDto,
   SignUpDto,
 } from './auth.dto';
-import { LocalAuthGuard } from 'src/guards/local-auth.guard';
-import { Claims, UserClaims } from 'src/types/auth.types';
+import { UserClaims } from 'src/types/auth.types';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { Admin } from 'src/decorators/admin.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { User } from 'src/decorators/user.decorator';
 import { AuthTransformInterceptor } from 'src/interceptors/auth.transform';
@@ -52,10 +49,11 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Auth()
   @Get('/self')
-  async getSelfInfo(@User() claims: UserClaims) {
-    console.log('claims', claims);
-    return this.authService.getSelfInfo(claims);
+  @UseInterceptors(UserTransformInterceptor)
+  async getSelfInfo(@User('id') userId: number) {
+    return this.authService.getSelfInfo(userId);
   }
 
   @Post('/renew')

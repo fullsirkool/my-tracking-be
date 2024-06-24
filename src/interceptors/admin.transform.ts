@@ -8,16 +8,15 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Injectable()
-export class UserTransformInterceptor implements NestInterceptor {
+export class AdminTransformInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map((data) => {
         if (!data) {
           return {};
         }
-        const { id, stravaId, firstName, lastName, profile, email, activated } =
-          data;
-        return { id, stravaId, firstName, lastName, profile, email, activated };
+        const { id, username, status } = data;
+        return { id, username, status };
       }),
     );
   }

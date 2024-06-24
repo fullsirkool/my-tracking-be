@@ -1,381 +1,402 @@
-import {catchError, firstValueFrom} from 'rxjs';
-import {UserService} from './../user/user.service';
-import {PrismaService} from './../prisma/prisma.service';
+import { catchError, firstValueFrom } from 'rxjs';
+import { UserService } from './../user/user.service';
+import { PrismaService } from './../prisma/prisma.service';
 import {
-    ConflictException,
-    forwardRef,
-    Inject,
-    Injectable,
-    NotAcceptableException,
-    NotFoundException,
-    UnauthorizedException,
+  ConflictException,
+  forwardRef,
+  Inject,
+  Injectable,
+  NotAcceptableException,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import {CompleteUserDto, SignInAdminDto, SignInDto, SignInGoogleDto, SignUpDto,} from './auth.dto';
-import {HttpService} from '@nestjs/axios';
-import {AxiosError} from 'axios';
-import {AdminService} from '../admin/admin.service';
+import {
+  CompleteUserDto,
+  SignInDto,
+  SignInGoogleDto,
+  SignUpDto,
+} from './auth.dto';
+import { HttpService } from '@nestjs/axios';
+import { AxiosError } from 'axios';
+import { AdminService } from '../admin/admin.service';
 import * as bcrypt from 'bcrypt';
-import {Claims, UserClaims} from 'src/types/auth.types';
-import {JwtService} from '@nestjs/jwt';
-import {destructExpiredDateToken, exclude} from 'src/utils/transform.utils';
-import {ActivityService} from '../activity/activity.service';
-import {User} from '@prisma/client';
-import {MailService} from '../mail/mail.service';
+import { UserClaims } from 'src/types/auth.types';
+import { JwtService } from '@nestjs/jwt';
+import { destructExpiredDateToken } from 'src/utils/transform.utils';
+import { ActivityService } from '../activity/activity.service';
+import { User } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
 import * as process from 'process';
-import {InjectQueue} from '@nestjs/bull';
-import {Queue} from 'bull';
-import {FirebaseService} from '../firebase/firebase.service';
-import * as moment from "moment-timezone";
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import { FirebaseService } from '../firebase/firebase.service';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private readonly prisma: PrismaService,
-        private readonly userService: UserService,
-        private readonly httpService: HttpService,
-        private readonly adminService: AdminService,
-        private readonly mailService: MailService,
-        @Inject(forwardRef(() => ActivityService))
-        private readonly activityService: ActivityService,
-        private readonly jwtService: JwtService,
-        @InjectQueue('auth') private readonly authTaskQueue: Queue,
-        @InjectQueue('activity') private readonly activityTaskQueue: Queue,
-        private readonly firebaseService: FirebaseService,
-    ) {
-    }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly userService: UserService,
+    private readonly httpService: HttpService,
+    private readonly adminService: AdminService,
+    private readonly mailService: MailService,
+    @Inject(forwardRef(() => ActivityService))
+    private readonly activityService: ActivityService,
+    private readonly jwtService: JwtService,
+    @InjectQueue('auth') private readonly authTaskQueue: Queue,
+    @InjectQueue('activity') private readonly activityTaskQueue: Queue,
+    private readonly firebaseService: FirebaseService,
+  ) {}
 
-    async connectStrava(code: string, userId: number) {
-        const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
-        const {data} = await firstValueFrom(
-            this.httpService
-                .post(
-                    url,
-                    {},
-                    {
-                        params: {
-                            client_id: process.env.STRAVA_CLIENT_ID,
-                            client_secret: process.env.STRAVA_CLIENT_SECRET,
-                            code: code,
-                            grant_type: `authorization_code`,
-                        },
-                    },
-                )
-                .pipe(
-                    catchError((error: AxiosError) => {
-                        console.error(error.response.data);
-                        throw 'An error happened!';
-                    }),
-                ),
-        );
-        const {refresh_token, access_token} = data;
-        const {id, firstname, lastname, profile} = data.athlete;
-
-        const connectedUser = await this.userService.findByStravaId(id);
-
-        if (connectedUser) {
-            throw new ConflictException(
-                `This strava account has already connected. Please check again!`,
-            );
-        }
-
-        const sendUser = {
-            stravaId: id,
-            firstName: firstname,
-            lastName: lastname,
-            profile,
-            stravaRefreshToken: refresh_token,
-        };
-        const findUser = await this.prisma.user.findUnique({
-            where: {
-                id: userId,
+  async connectStrava(code: string, userId: number) {
+    const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
+    const { data } = await firstValueFrom(
+      this.httpService
+        .post(
+          url,
+          {},
+          {
+            params: {
+              client_id: process.env.STRAVA_CLIENT_ID,
+              client_secret: process.env.STRAVA_CLIENT_SECRET,
+              code: code,
+              grant_type: `authorization_code`,
             },
-        });
+          },
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.error(error.response.data);
+            throw 'An error happened!';
+          }),
+        ),
+    );
+    const { refresh_token, access_token } = data;
+    const { id, firstname, lastname, profile } = data.athlete;
 
-        if (!findUser) {
-            throw new NotFoundException('Not Found User!');
-        }
+    const connectedUser = await this.userService.findByStravaId(id);
 
-        await this.prisma.user.update({
-            where: {id: findUser.id},
-            data: sendUser,
-        });
-
-        await this.activityTaskQueue.add('import-first', {
-            access_token,
-            findUser,
-        });
-
-        return {success: true};
+    if (connectedUser) {
+      throw new ConflictException(
+        `This strava account has already connected. Please check again!`,
+      );
     }
 
-    async resetToken(stravaRefreshToken: string) {
-        const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
-        const {data} = await firstValueFrom(
-            this.httpService
-                .post(
-                    url,
-                    {},
-                    {
-                        params: {
-                            client_id: process.env.STRAVA_CLIENT_ID,
-                            client_secret: process.env.STRAVA_CLIENT_SECRET,
-                            grant_type: `refresh_token`,
-                            refresh_token: stravaRefreshToken,
-                        },
-                    },
-                )
-                .pipe(
-                    catchError((error: AxiosError) => {
-                        console.error(error);
-                        throw 'An error happened!';
-                    }),
-                ),
-        );
+    const sendUser = {
+      stravaId: id,
+      firstName: firstname,
+      lastName: lastname,
+      profile,
+      stravaRefreshToken: refresh_token,
+    };
+    const findUser = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
 
-        return data;
+    if (!findUser) {
+      throw new NotFoundException('Not Found User!');
     }
 
-    async renewToken(userId: number, refreshToken: string) {
-        const user = await this.prisma.user.findUnique({
-            where: {
-                id: userId,
+    await this.prisma.user.update({
+      where: { id: findUser.id },
+      data: sendUser,
+    });
+
+    await this.activityTaskQueue.add('import-first', {
+      access_token,
+      findUser,
+    });
+
+    return { success: true };
+  }
+
+  async resetToken(stravaRefreshToken: string) {
+    const url = `${process.env.STRAVA_BASE_URL}/oauth/token`;
+    const { data } = await firstValueFrom(
+      this.httpService
+        .post(
+          url,
+          {},
+          {
+            params: {
+              client_id: process.env.STRAVA_CLIENT_ID,
+              client_secret: process.env.STRAVA_CLIENT_SECRET,
+              grant_type: `refresh_token`,
+              refresh_token: stravaRefreshToken,
             },
-            include: {
-                userTokens: true
-            }
-        });
+          },
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.error(error);
+            throw 'An error happened!';
+          }),
+        ),
+    );
 
-        if (!user) {
-            throw new NotFoundException('Not found user!');
-        }
+    return data;
+  }
 
-        const foundToken = user.userTokens.find(item => item.refreshToken === refreshToken)
+  async renewToken(userId: number, refreshToken: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        userTokens: true,
+      },
+    });
 
-        if (!foundToken) {
-            throw new UnauthorizedException('Not found token');
-        }
-        const isValidToken = moment().tz('Asia/Ho_Chi_Minh').isSameOrBefore(foundToken.expiredDate)
-        if (!isValidToken) {
-            await this.prisma.userToken.delete({
-                where: {
-                    id: foundToken.id
-                }
-            })
-            throw new UnauthorizedException('Token expired!');
-        }
-
-        return this.generateTokens(user);
+    if (!user) {
+      throw new NotFoundException('Not found user!');
     }
 
-    private async generateTokens(user: User) {
-        const {id, stravaId, firstName, lastName, profile} = user;
-        const accessToken = this.jwtService.sign(
-            {id, stravaId, firstName, lastName, profile},
-            {
-                expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
-                secret: process.env.ACCESS_TOKEN_SECRET,
-            },
-        );
+    const foundToken = user.userTokens.find(
+      (item) => item.refreshToken === refreshToken,
+    );
 
-        const newRefreshToken = this.jwtService.sign(
-            {sub: id},
-            {
-                expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
-                secret: process.env.REFRESH_TOKEN_SECRET,
-            },
-        );
-
-        const {number, range} = destructExpiredDateToken(process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME)
-
-        const expiredDate = moment.tz('Asia/Ho_Chi_Minh').add(number, range).toDate()
-
-        await this.prisma.userToken.create({
-            data: {
-                refreshToken: newRefreshToken,
-                userId: id,
-                expiredDate: expiredDate
-            }
-        });
-
-        return {
-            accessToken,
-            refreshToken: newRefreshToken,
-        };
-
+    if (!foundToken) {
+      throw new UnauthorizedException('Not found token');
+    }
+    const isValidToken = moment()
+      .tz('Asia/Ho_Chi_Minh')
+      .isSameOrBefore(foundToken.expiredDate);
+    if (!isValidToken) {
+      await this.prisma.userToken.delete({
+        where: {
+          id: foundToken.id,
+        },
+      });
+      throw new UnauthorizedException('Token expired!');
     }
 
-    getSelfInfo(claims: UserClaims) {
-        return {};
+    return this.generateTokens(user);
+  }
+
+  private async generateTokens(user: User) {
+    const { id, stravaId, firstName, lastName, profile } = user;
+    const accessToken = this.jwtService.sign(
+      { id, stravaId, firstName, lastName, profile },
+      {
+        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
+        secret: process.env.ACCESS_TOKEN_SECRET,
+      },
+    );
+
+    const newRefreshToken = this.jwtService.sign(
+      { sub: id },
+      {
+        expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      },
+    );
+
+    const { number, range } = destructExpiredDateToken(
+      process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
+    );
+
+    const expiredDate = moment
+      .tz('Asia/Ho_Chi_Minh')
+      .add(number, range)
+      .toDate();
+
+    await this.prisma.userToken.create({
+      data: {
+        refreshToken: newRefreshToken,
+        userId: id,
+        expiredDate: expiredDate,
+      },
+    });
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
+  }
+
+  async getSelfInfo(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Not found user!');
+    }
+    return user;
+  }
+
+  async complete(userId: number, completeUserDto: CompleteUserDto) {
+    const { email, password } = completeUserDto;
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('Not Found User!');
     }
 
-    async complete(userId: number, completeUserDto: CompleteUserDto) {
-        const {email, password} = completeUserDto;
-
-        const user = await this.prisma.user.findUnique({
-            where: {
-                id: userId,
-            },
-        });
-        if (!user) {
-            throw new NotFoundException('Not Found User!');
-        }
-
-        if (user.email && user.password) {
-            throw new ConflictException('User has been completed!');
-        }
-
-        const saltOrRounds = +process.env.USER_SALT;
-        const hash = await bcrypt.hash(password, saltOrRounds);
-
-        return this.prisma.user.update({
-            data: {
-                email,
-                password: hash,
-            },
-            where: {
-                id: userId,
-            },
-        });
+    if (user.email && user.password) {
+      throw new ConflictException('User has been completed!');
     }
 
-    async create(signUpDto: SignUpDto) {
-        const {email, password, firstName, lastName, sex} = signUpDto;
-        const user = await this.prisma.user.findUnique({
-            where: {email},
-        });
+    const saltOrRounds = +process.env.USER_SALT;
+    const hash = await bcrypt.hash(password, saltOrRounds);
 
-        if (user) {
-            throw new ConflictException('Email has registered!');
-        }
+    return this.prisma.user.update({
+      data: {
+        email,
+        password: hash,
+      },
+      where: {
+        id: userId,
+      },
+    });
+  }
 
-        const saltOrRounds = +process.env.USER_SALT;
-        const hash = await bcrypt.hash(password, saltOrRounds);
+  async create(signUpDto: SignUpDto) {
+    const { email, password, firstName, lastName, sex } = signUpDto;
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
 
-        const createdUser = await this.prisma.user.create({
-            data: {
-                email,
-                password: hash,
-                firstName,
-                lastName,
-                sex,
-            },
-        });
-
-        const {capcha} = createdUser;
-        const url = `${process.env.APP_URL}/confirm/${capcha}`;
-
-        await this.authTaskQueue.add('send-mail', {
-            email,
-            url,
-        });
-
-        return {success: true};
+    if (user) {
+      throw new ConflictException('Email has registered!');
     }
 
-    async verify(capcha: string) {
-        const findUser = await this.prisma.user.findFirst({
-            where: {capcha},
-        });
-        if (!findUser) {
-            throw new NotFoundException('Could not find account with capcha!');
-        }
-        return this.prisma.user.update({
-            where: {id: findUser.id},
-            data: {
-                capcha: null,
-                activated: true,
-            },
-        });
+    const saltOrRounds = +process.env.USER_SALT;
+    const hash = await bcrypt.hash(password, saltOrRounds);
+
+    const createdUser = await this.prisma.user.create({
+      data: {
+        email,
+        password: hash,
+        firstName,
+        lastName,
+        sex,
+      },
+    });
+
+    const { capcha } = createdUser;
+    const url = `${process.env.APP_URL}/confirm/${capcha}`;
+
+    await this.authTaskQueue.add('send-mail', {
+      email,
+      url,
+    });
+
+    return { success: true };
+  }
+
+  async verify(capcha: string) {
+    const findUser = await this.prisma.user.findFirst({
+      where: { capcha },
+    });
+    if (!findUser) {
+      throw new NotFoundException('Could not find account with capcha!');
+    }
+    return this.prisma.user.update({
+      where: { id: findUser.id },
+      data: {
+        capcha: null,
+        activated: true,
+      },
+    });
+  }
+
+  async signIn(signInDto: SignInDto) {
+    const { email, password } = signInDto;
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Not found user!');
     }
 
-    async signIn(signInDto: SignInDto) {
-        const {email, password} = signInDto;
-        const user = await this.userService.findByEmail(email);
-        if (!user) {
-            throw new NotFoundException('Not found user!');
-        }
+    const isMatch = await bcrypt.compare(password, user.password);
 
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            throw new UnauthorizedException('Email or password is incorrect!');
-        }
-
-        const {activated} = user;
-
-        if (!activated) {
-            throw new UnauthorizedException(
-                'Your account has not verified. Please check your email to active your account!',
-            );
-        }
-
-        const {accessToken, refreshToken} = await this.generateTokens(user);
-        return {
-            user,
-            accessToken,
-            refreshToken,
-            expireTime: +process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
-        };
+    if (!isMatch) {
+      throw new UnauthorizedException('Email or password is incorrect!');
     }
 
-    async resendEmail(signInDto: SignInDto) {
-        const {email, password} = signInDto;
-        const user = await this.userService.findByEmail(email);
-        if (!user) {
-            throw new NotFoundException('Not found user!');
-        }
+    const { activated } = user;
 
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            throw new UnauthorizedException('Email or password is incorrect!');
-        }
-
-        const {capcha} = user;
-
-        const url = `${process.env.APP_URL}/confirm/${capcha}`;
-        await this.mailService.confirmAccount({
-            to: email,
-            url,
-            subject: 'Welcome To My Tracking',
-        });
-        return {success: true};
+    if (!activated) {
+      throw new UnauthorizedException(
+        'Your account has not verified. Please check your email to active your account!',
+      );
     }
 
-    async signInGoogle(signInGoogleDto: SignInGoogleDto) {
-        const {token, deviceToken} = signInGoogleDto;
-        const firebaseAuth = this.firebaseService.getFirebaseApp().auth();
-        const decodedToken = await firebaseAuth.verifyIdToken(token);
+    const { accessToken, refreshToken } = await this.generateTokens(user);
+    return {
+      user,
+      accessToken,
+      refreshToken,
+      expireTime: +process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
+    };
+  }
 
-        if (!decodedToken) {
-            throw new NotAcceptableException('Failed!');
-        }
-
-        const {email, uid} = decodedToken;
-
-        const userProfile = await firebaseAuth.getUser(uid);
-
-        const {displayName, photoURL} = userProfile;
-
-        let user = await this.prisma.user.findUnique({where: {email}});
-
-        if (!user) {
-            user = await this.prisma.user.create({
-                data: {
-                    email,
-                    firstName: displayName,
-                    profile: photoURL,
-                    activated: true,
-                },
-            });
-        }
-
-        const {accessToken, refreshToken} = await this.generateTokens(user);
-
-        return {
-            user,
-            accessToken,
-            refreshToken,
-        };
+  async resendEmail(signInDto: SignInDto) {
+    const { email, password } = signInDto;
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Not found user!');
     }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      throw new UnauthorizedException('Email or password is incorrect!');
+    }
+
+    const { capcha } = user;
+
+    const url = `${process.env.APP_URL}/confirm/${capcha}`;
+    await this.mailService.confirmAccount({
+      to: email,
+      url,
+      subject: 'Welcome To My Tracking',
+    });
+    return { success: true };
+  }
+
+  async signInGoogle(signInGoogleDto: SignInGoogleDto) {
+    const { token } = signInGoogleDto;
+    const firebaseAuth = this.firebaseService.getFirebaseApp().auth();
+    const decodedToken = await firebaseAuth.verifyIdToken(token);
+
+    if (!decodedToken) {
+      throw new NotAcceptableException('Failed!');
+    }
+
+    const { email, uid } = decodedToken;
+
+    const userProfile = await firebaseAuth.getUser(uid);
+
+    const { displayName, photoURL } = userProfile;
+
+    let user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          firstName: displayName,
+          profile: photoURL,
+          activated: true,
+        },
+      });
+    }
+
+    const { accessToken, refreshToken } = await this.generateTokens(user);
+
+    return {
+      user,
+      accessToken,
+      refreshToken,
+    };
+  }
 }
