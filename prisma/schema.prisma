@@ -46,12 +46,11 @@ model UserToken {
 }
 
 model Admin {
-  id           Int          @id @unique @default(autoincrement())
-  username     String       @unique
-  password     String
-  status       AdminStatus  @default(INACTIVE)
-  refreshToken String?      @map("refresh_token")
-  adminTokens  AdminToken[]
+  id          Int          @id @unique @default(autoincrement())
+  username    String       @unique
+  password    String
+  status      AdminStatus  @default(ACTIVE)
+  adminTokens AdminToken[]
 
   @@map("admin")
 }

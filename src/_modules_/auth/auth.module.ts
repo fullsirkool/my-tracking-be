@@ -14,6 +14,8 @@ import { BullModule } from '@nestjs/bull';
 import { Queues } from '../../types/queue.type';
 import { AuthConsumer } from './auth.consumer';
 import { FirebaseModule } from '../firebase/firebase.module';
+import {JwtRefreshAdminStrategy} from "../../strategies/jwt-refresh-admin.strategy";
+import {ActivityConsumer} from "../activity/activity.consumer";
 
 @Module({
   imports: [

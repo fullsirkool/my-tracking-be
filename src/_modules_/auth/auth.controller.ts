@@ -51,13 +51,6 @@ export class AuthController {
     return this.authService.signIn(signInDto);
   }
 
-  @UseGuards(LocalAuthGuard)
-  @ApiBody({ type: SignInAdminDto })
-  @Post('/admin/sign-in')
-  async login(@Admin() claims: Claims) {
-    return this.authService.signInAdmin(claims);
-  }
-
   @UseGuards(JwtAuthGuard)
   @Get('/self')
   async getSelfInfo(@User() claims: UserClaims) {

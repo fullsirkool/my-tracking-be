@@ -17,7 +17,7 @@ import {AdminService} from '../admin/admin.service';
 import * as bcrypt from 'bcrypt';
 import {Claims, UserClaims} from 'src/types/auth.types';
 import {JwtService} from '@nestjs/jwt';
-import {exclude} from 'src/utils/transform.utils';
+import {destructExpiredDateToken, exclude} from 'src/utils/transform.utils';
 import {ActivityService} from '../activity/activity.service';
 import {User} from '@prisma/client';
 import {MailService} from '../mail/mail.service';
@@ -135,35 +135,6 @@ export class AuthService {
         return data;
     }
 
-    async validateAdmin(signInAdminDto: SignInAdminDto) {
-        const {username, password} = signInAdminDto;
-        const admin = await this.adminService.findByUsername(username);
-        if (!admin) {
-            throw new UnauthorizedException('Admin not found!');
-        }
-
-        const isMatchPassword = await bcrypt.compare(password, admin.password);
-
-        if (!isMatchPassword) {
-            throw new UnauthorizedException('Wrong email or password!');
-        }
-
-        return admin;
-    }
-
-    async signInAdmin(claims: Claims) {
-        const [tokens, admin] = await Promise.all([
-            this.generateAdminTokens(claims),
-            this.prisma.admin.findUnique({
-                where: {id: claims.id},
-            }),
-        ]);
-        return {
-            ...tokens,
-            admin: exclude(admin, ['password', 'refreshToken']),
-        };
-    }
-
     async renewToken(userId: number, refreshToken: string) {
         const user = await this.prisma.user.findUnique({
             where: {
@@ -196,45 +167,6 @@ export class AuthService {
         return this.generateTokens(user);
     }
 
-    private async generateAdminTokens(claims: Claims) {
-        const accessToken = this.jwtService.sign(claims, {
-            expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
-            secret: process.env.ACCESS_TOKEN_SECRET,
-        });
-
-        const refreshToken = this.jwtService.sign(
-            {sub: claims.id},
-            {
-                expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
-                secret: process.env.REFRESH_TOKEN_SECRET,
-            },
-        );
-
-        await this.prisma.admin.update({
-            where: {id: claims.id},
-            data: {
-                refreshToken,
-            },
-        });
-
-        return {
-            accessToken,
-            refreshToken,
-        };
-    }
-
-    private destructExpiredDateToken(value) {
-        const dateRangeMapping = {
-            "d": 'days',
-            "w": 'weeks',
-            "m": 'months',
-            "y": 'years'
-        }
-        const numberPart = parseInt(value, 10);
-        const letterPart = value.slice(numberPart.toString().length);
-        return {number: numberPart, range: dateRangeMapping[letterPart]}
-    }
-
     private async generateTokens(user: User) {
         const {id, stravaId, firstName, lastName, profile} = user;
         const accessToken = this.jwtService.sign(
@@ -253,7 +185,7 @@ export class AuthService {
             },
         );
 
-        const {number, range} = this.destructExpiredDateToken(process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME)
+        const {number, range} = destructExpiredDateToken(process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME)
 
         const expiredDate = moment.tz('Asia/Ho_Chi_Minh').add(number, range).toDate()
 
