@@ -333,18 +333,6 @@ export class ChallengeService {
       throw new NotFoundException('Not Found Challenge!');
     }
 
-    if (challenge.challengeType === 'ONE_VS_ONE') {
-      const count = await this.prisma.challengeUser.count({
-        where: {
-          challengeId,
-        },
-      });
-
-      if (count >= 2) {
-        throw new NotAcceptableException('This challenge is full!');
-      }
-    }
-
     const challengeUser = await this.prisma.challengeUser.create({
       data: {
         challenge: {
