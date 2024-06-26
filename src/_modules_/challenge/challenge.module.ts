@@ -8,10 +8,14 @@ import { BullModule } from '@nestjs/bull';
 import { Queues } from '../../types/queue.type';
 import { ChallengeConsumer } from './challenge.comsumer';
 import { UserModule } from '../user/user.module';
+import { HttpModule } from '@nestjs/axios';
+import { PaymentModule } from '../payment/payment.module';
 
 @Module({
   imports: [
     ActivityModule,
+    PaymentModule,
+    HttpModule,
     AuthModule,
     UserModule,
     BullModule.registerQueue({

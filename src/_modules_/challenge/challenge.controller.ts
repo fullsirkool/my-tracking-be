@@ -35,6 +35,13 @@ export class ChallengeController {
   @Post('/join/:id')
   @Auth()
   joinChallenge(@User('id') userId: number, @Param('id') id: number) {
+    // return this.challengeService.joinChallenge(userId, +id);
+    return this.challengeService.joinChallengeNew(userId, +id);
+  }
+
+  @Post('/join/complete/:id')
+  @Auth()
+  completeJoinChallenge(@User('id') userId: number, @Param('id') id: number) {
     return this.challengeService.joinChallenge(userId, +id);
   }
 

@@ -31,7 +31,7 @@ model User {
   challengeDailyActivity ChallengeDailyActivity[]
   point                  Point?
   userTokens             UserToken[]
-  ChallengeRegister      ChallengeRegister[]
+  payments               Payment[]
 
   @@map("user")
 }
@@ -123,7 +123,7 @@ model Challenge {
   rule                   Rule?
   challengeActivity      ChallengeActivity[]
   challengeDailyActivity ChallengeDailyActivity[]
-  challengeRegisters      ChallengeRegister[]
+  payments               Payment[]
 
   @@map("challenge")
 }
@@ -142,13 +142,18 @@ model Rule {
   @@map("rule")
 }
 
-model ChallengeRegister {
-  id          Int       @id @unique @default(autoincrement())
-  userId      Int       @map("user_id")
-  challengeId Int       @map("challenge_id")
-  isCompleted Boolean   @default(false) @map("is_completed")
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+model Payment {
+  id          Int         @id @unique @default(autoincrement())
+  userId      Int         @map("user_id")
+  challengeId Int         @map("challenge_id")
+  amount      Float       @map("amount")
+  isCompleted Boolean     @default(false) @map("is_completed")
+  paymentType PaymentType @default(REGIST_FEE) @map("payment_type")
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge   Challenge   @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId, paymentType])
+  @@map("payment")
 }
 
 model ChallengeUser {
@@ -200,4 +205,9 @@ enum ChallengeStatus {
 
 enum ChallengeType {
   ONE_VS_MANY
+}
+
+enum PaymentType {
+  REGIST_FEE
+  BONUS
 }

@@ -3,20 +3,11 @@ import {
   Injectable,
   NotAcceptableException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import {
-  Activity,
-  Challenge,
-  ChallengeUser,
-  Prisma,
-  User,
-} from '@prisma/client';
+import { Activity, Challenge, ChallengeUser, Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  CreateChallengeDto,
-  FindChallengeDto,
-  FindChallengeResponse,
-} from './challenge.dto';
+import { CreateChallengeDto, FindChallengeDto, FindChallengeResponse } from './challenge.dto';
 import { BasePagingDto, BasePagingResponse } from 'src/types/base.types';
 import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
 import * as moment from 'moment-timezone';
@@ -25,16 +16,19 @@ import { AuthService } from '../auth/auth.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { UserService } from '../user/user.service';
+import { PaymentService } from '../payment/payment.service';
 
 @Injectable()
 export class ChallengeService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly paymentService: PaymentService,
     private readonly activityService: ActivityService,
     private readonly authService: AuthService,
     private readonly userService: UserService,
     @InjectQueue('challenge') private readonly challengeTaskQueue: Queue,
-  ) {}
+  ) {
+  }
 
   async create(
     ownerId: number,
@@ -355,6 +349,36 @@ export class ChallengeService {
     });
 
     return challengeUser;
+  }
+
+  async joinChallengeNew(userId: number, challengeId: number) {
+    const createdChallengeUser = await this.prisma.challengeUser.findFirst({
+      where: {
+        userId,
+        challengeId,
+      },
+      include: {
+        challenge: true,
+      },
+    });
+
+    if (createdChallengeUser) {
+      throw new ConflictException('User has joined this challenge!');
+    }
+
+    const challenge = await this.prisma.challenge.findUnique({
+      where: {
+        id: challengeId,
+      },
+    });
+
+    if (!challenge) {
+      throw new NotFoundException('Not Found Challenge!');
+    }
+
+    const { ticketPrice } = challenge;
+
+    return this.paymentService.create({ userId, challengeId, amount: ticketPrice });
   }
 
   async importActivitiesAfterJoinChallenge(
