@@ -43,7 +43,7 @@ export class PaymentService {
       acqId: process.env.BANK_ACCOUNT_BIN,
       accountName: process.env.BANK_ACCOUNT_NAME,
       amount: amount,
-      addInfo: `JOIN_CHALLENGE_${paymentId}`,
+      addInfo: `JOINCHALLENGE ${paymentId}`,
       'format': 'text',
       'template': 'compact',
     };
