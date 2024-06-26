@@ -3,3 +3,7 @@ export class CreatePaymentDto {
   challengeId: number;
   amount: number;
 }
+
+export class CompletePaymentDto {
+  message: string;
+}

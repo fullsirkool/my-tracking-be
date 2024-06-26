@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
-import { CreatePaymentDto } from './payment.dto';
+import { CompletePaymentDto, CreatePaymentDto } from './payment.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { PaymentType } from '@prisma/client';
@@ -43,7 +43,7 @@ export class PaymentService {
       acqId: process.env.BANK_ACCOUNT_BIN,
       accountName: process.env.BANK_ACCOUNT_NAME,
       amount: amount,
-      addInfo: `Đăng kí tham gia giải đấu ${paymentId}`,
+      addInfo: `JOIN_CHALLENGE_${paymentId}`,
       'format': 'text',
       'template': 'compact',
     };
@@ -66,5 +66,11 @@ export class PaymentService {
     );
 
     return data.data;
+  }
+
+  async complete(completePaymentDto: CompletePaymentDto) {
+    const {message} = completePaymentDto
+
+    return {success: true}
   }
 }
