@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Sse } from '@nestjs/common';
+import {Body, Controller, Param, Post, Sse} from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CompletePaymentDto } from './payment.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -19,12 +19,12 @@ export class PaymentController {
     return this.paymentService.complete(completePaymentDto);
   }
 
-  @Sse('sse')
-  sse(): Observable<MessageEvent> {
+  @Sse('event/:id')
+  sse(@Param('id') id: string): Observable<MessageEvent> {
     console.log('send event!');
-    return fromEvent(this.eventEmitter, 'new-payment').pipe(
+    return fromEvent(this.eventEmitter, `complete-payment/${id}`).pipe(
       map((data) => {
-        return new MessageEvent('new-payment', { data: 'new payment' });
+        return new MessageEvent('complete-payment', { data });
       }),
     );
   }

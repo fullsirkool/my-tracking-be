@@ -69,12 +69,23 @@ export class PaymentService {
         ),
     );
 
-    return data.data;
+    return {
+      ...data.data,
+      paymentId,
+    };
   }
 
   async complete(completePaymentDto: CompletePaymentDto) {
     const { message } = completePaymentDto;
-    this.eventEmitter.emit('new-payment', { data: 'trigged event!' });
+    const [mess, paymentId] = message.split(' ');
+    const payment = await this.prisma.payment.findUnique({
+      where: {
+        id: +paymentId,
+      },
+    });
+    this.eventEmitter.emit(`complete-payment/${paymentId}`, {
+      data: { paymentId },
+    });
     return { success: true };
   }
 }
