@@ -21,6 +21,7 @@ export class PaymentController {
 
   @Sse('sse')
   sse(): Observable<MessageEvent> {
+    console.log('send event!');
     return fromEvent(this.eventEmitter, 'new-payment').pipe(
       map((data) => {
         return new MessageEvent('new-payment', { data: 'new payment' });
