@@ -1,9 +1,9 @@
-import {Body, Controller, Post, Res, Sse} from '@nestjs/common';
+import { Body, Controller, Post, Res, Sse } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CompletePaymentDto } from './payment.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { fromEvent, Observable } from 'rxjs';
+import { fromEvent, Observable, take } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Response } from 'express';
 
@@ -28,6 +28,7 @@ export class PaymentController {
     res.flushHeaders();
     console.log('send event!');
     return fromEvent(this.eventEmitter, 'new-payment').pipe(
+      take(1),
       map((data) => {
         return new MessageEvent('new-payment', { data: 'new payment' });
       }),
