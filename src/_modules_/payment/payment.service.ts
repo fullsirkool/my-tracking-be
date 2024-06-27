@@ -5,11 +5,15 @@ import { CompletePaymentDto, CreatePaymentDto } from './payment.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { PaymentType } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class PaymentService {
-  constructor(private readonly prisma: PrismaService, private readonly httpService: HttpService) {
-  }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly httpService: HttpService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(createPaymentDto: CreatePaymentDto) {
     const { userId, challengeId, amount } = createPaymentDto;
@@ -19,12 +23,12 @@ export class PaymentService {
         userId_challengeId_paymentType: {
           userId,
           challengeId,
-          paymentType: PaymentType.REGIST_FEE
-        }
-      }
-    })
+          paymentType: PaymentType.REGIST_FEE,
+        },
+      },
+    });
 
-    let paymentId = createdPayment?.id
+    let paymentId = createdPayment?.id;
 
     if (!createdPayment) {
       const payment = await this.prisma.payment.create({
@@ -34,7 +38,7 @@ export class PaymentService {
           amount,
         },
       });
-      paymentId = payment.id
+      paymentId = payment.id;
     }
 
     const generateApiUrl = `${process.env.VIETQR_API}/generate`;
@@ -44,8 +48,8 @@ export class PaymentService {
       accountName: process.env.BANK_ACCOUNT_NAME,
       amount: amount,
       addInfo: `JOINCHALLENGE ${paymentId}`,
-      'format': 'text',
-      'template': 'compact',
+      format: 'text',
+      template: 'compact',
     };
     const headers = {
       'x-client-id': process.env.VIETQR_CLIENT_ID,
@@ -69,8 +73,8 @@ export class PaymentService {
   }
 
   async complete(completePaymentDto: CompletePaymentDto) {
-    const {message} = completePaymentDto
-
-    return {success: true}
+    const { message } = completePaymentDto;
+    this.eventEmitter.emit('new-payment', { data: 'trigged event!' });
+    return { success: true };
   }
 }

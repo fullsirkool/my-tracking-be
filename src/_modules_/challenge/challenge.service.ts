@@ -5,9 +5,19 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Activity, Challenge, ChallengeUser, Prisma, User } from '@prisma/client';
+import {
+  Activity,
+  Challenge,
+  ChallengeUser,
+  Prisma,
+  User,
+} from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateChallengeDto, FindChallengeDto, FindChallengeResponse } from './challenge.dto';
+import {
+  CreateChallengeDto,
+  FindChallengeDto,
+  FindChallengeResponse,
+} from './challenge.dto';
 import { BasePagingDto, BasePagingResponse } from 'src/types/base.types';
 import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
 import * as moment from 'moment-timezone';
@@ -27,8 +37,7 @@ export class ChallengeService {
     private readonly authService: AuthService,
     private readonly userService: UserService,
     @InjectQueue('challenge') private readonly challengeTaskQueue: Queue,
-  ) {
-  }
+  ) {}
 
   async create(
     ownerId: number,
@@ -378,7 +387,11 @@ export class ChallengeService {
 
     const { ticketPrice } = challenge;
 
-    return this.paymentService.create({ userId, challengeId, amount: ticketPrice });
+    return this.paymentService.create({
+      userId,
+      challengeId,
+      amount: ticketPrice,
+    });
   }
 
   async importActivitiesAfterJoinChallenge(

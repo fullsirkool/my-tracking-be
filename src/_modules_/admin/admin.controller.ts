@@ -8,7 +8,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import {ApiBearerAuth, ApiBody, ApiTags} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { LocalAuthGuard } from '../../guards/local-auth.guard';
 import { RenewDto, SignInAdminDto } from '../auth/auth.dto';
 import { Admin } from '../../decorators/admin.decorator';
@@ -17,7 +17,7 @@ import { JwtRefreshAdminAuthGuard } from '../../guards/jwt-refresh-admin.guard';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { Auth } from '../../decorators/auth.decorator';
 import { AdminTransformInterceptor } from '../../interceptors/admin.transform';
-import {JwtAdminAuthGuard} from "../../guards/jwt-admin-auth.guard";
+import { JwtAdminAuthGuard } from '../../guards/jwt-admin-auth.guard';
 
 @Controller('/auth/admin')
 @ApiTags('/auth/admin')
