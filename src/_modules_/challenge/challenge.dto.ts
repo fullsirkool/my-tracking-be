@@ -13,6 +13,7 @@ import {
 } from 'src/decorators/validator.decorator';
 import { BasePagingDto } from 'src/types/base.types';
 import { BasePagingResponse } from './../../types/base.types';
+import { Transform } from 'class-transformer';
 
 export class CreateChallengeDto {
   @ApiProperty({ required: true })
@@ -97,4 +98,9 @@ export class ActivityStatistics {
   movingTime: number;
   elapsedTime: number;
   startDateLocal: Date;
+}
+
+export class FindChallengeUserDto extends BasePagingDto {
+  @Transform((param) => param.value.split(','))
+  sort?: string[] = ['totalDistance', 'desc'];
 }

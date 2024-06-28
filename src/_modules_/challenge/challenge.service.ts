@@ -16,7 +16,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateChallengeDto,
   FindChallengeDto,
-  FindChallengeResponse,
+  FindChallengeResponse, FindChallengeUserDto,
 } from './challenge.dto';
 import { BasePagingDto, BasePagingResponse } from 'src/types/base.types';
 import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
@@ -274,30 +274,32 @@ export class ChallengeService {
     return transformedData;
   }
 
-  async findUserForChallenge(id: number) {
-    const users = await this.prisma.user.findMany({
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        profile: true,
-        stravaId: true,
-        challengeDailyActivity: {
-          where: {
-            challengeId: id,
-          },
-        },
-      },
-      where: {
-        challengeUsers: {
-          some: {
-            challengeId: id,
-          },
-        },
-      },
-    });
-
-    return users;
+  async findUserForChallenge(challengeId: number, findChallengeUserDto: FindChallengeUserDto) {
+    const {page, size, sort} = findChallengeUserDto
+    const [sortField, order] = sort
+    const offset = (page - 1) * size
+    console.log(offset, size, sortField, order)
+    return this.prisma.$queryRawUnsafe(`
+      WITH USER_RESULT AS (
+        SELECT u.id,first_name, last_name, profile_long, r.target, COALESCE((
+        SELECT SUM(ac.distance) AS total_distance
+        FROM challenge_activity ca
+        JOIN activity ac ON ac.id = ca.activity_id
+        JOIN "user" su ON ca.user_id = su.id
+        WHERE su.id = u.id
+        ), 0) AS totalDistance
+        FROM "user" u
+        INNER JOIN challenge_user cu ON cu.user_id = u.id
+        INNER JOIN challenge ch ON ch.id = cu.challenge_id
+        INNER JOIN "rule" r ON ch.id = r.challenge_id
+        WHERE ch.id = ${challengeId}
+        ORDER BY ${sortField} ${order} LIMIT ${size} OFFSET ${offset}
+      )
+      SELECT *, 
+      CASE WHEN (totalDistance / target) * 100 > 100 THEN 100
+      ELSE (totalDistance / target) * 100
+      END AS process 
+      FROM USER_RESULT`)
   }
 
   async getChallengeCode(challengeId: number): Promise<string> {

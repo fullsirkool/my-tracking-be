@@ -5,7 +5,7 @@ import { User } from 'src/decorators/user.decorator';
 import {
   CreateChallengeDto,
   FindChallengeDto,
-  FindChallengeResponse,
+  FindChallengeResponse, FindChallengeUserDto,
 } from './challenge.dto';
 import { Auth } from 'src/decorators/auth.decorator';
 import { Challenge } from '@prisma/client';
@@ -61,8 +61,8 @@ export class ChallengeController {
   }
 
   @Get('/:id/user')
-  async findUserForChallenge(@Param('id') id: number) {
-    return await this.challengeService.findUserForChallenge(id);
+  async findUserForChallenge(@Param('id') id: number, @Query() findChallengeUserDto: FindChallengeUserDto){
+    return await this.challengeService.findUserForChallenge(id, findChallengeUserDto);
   }
 
   @Get('/user/joined/:id')

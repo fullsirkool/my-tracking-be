@@ -25,5 +25,5 @@ export class BasePagingDto {
     description: 'Number of records per page',
   })
   @IsInteger
-  readonly size: number = 9;
+  readonly size: number = 20;
 }
