@@ -9,6 +9,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import * as moment from 'moment-timezone';
+import { getDefaultPaginationReponse } from '../../utils/pagination.utils';
 
 @Injectable()
 export class PaymentService {
@@ -58,25 +59,31 @@ export class PaymentService {
         }
       ]
     }
-    this.prisma.payment.findMany({
-      where: {},
-      skip,
-      take: size,
-      include: {
-        challenge: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            profile: true,
-            name: true,
-            stravaId: true,
+    const [payments, count] = await Promise.all([
+      this.prisma.payment.findMany({
+        where: filter,
+        skip,
+        take: size,
+        include: {
+          challenge: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              profile: true,
+              name: true,
+              stravaId: true,
+            }
           }
         }
-      }
-    })
+      }),
+      this.prisma.payment.count({
+        where: filter
+      })
+    ])
     return {
-
+      ...getDefaultPaginationReponse(findPaymentDto, count),
+      data: payments,
     }
   }
 
