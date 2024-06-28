@@ -545,7 +545,7 @@ export class ChallengeService {
 
     if (joined) {
       return {
-        joined: true,
+        joined: true
       };
     }
 

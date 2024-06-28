@@ -15,9 +15,9 @@ export class ChallengeController {
   }
 
   @Post()
-  @UseGuards(JwtAdminAuthGuard)
-  @ApiBody({ type: CreateChallengeDto })
-  @ApiBearerAuth()
+  // @UseGuards(JwtAdminAuthGuard)
+  // @ApiBody({ type: CreateChallengeDto })
+  // @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard)
   async create(
     @Body() createChallengeDto: CreateChallengeDto,
