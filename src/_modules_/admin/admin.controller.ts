@@ -27,6 +27,7 @@ export class AdminController {
   @Post('')
   @ApiBody({ type: CreateAdminDto })
   @UseGuards(JwtAdminAuthGuard)
+  @ApiBearerAuth()
   async create(@Body() createAdminDto: CreateAdminDto) {
     return this.adminService.create(createAdminDto);
   }
@@ -41,6 +42,7 @@ export class AdminController {
   @Post('/renew')
   @ApiBody({ type: RenewDto })
   @UseGuards(JwtRefreshAdminAuthGuard)
+  @ApiBearerAuth()
   async refreshToken(
     @Admin('id') adminId: number,
     @Body('refreshToken') refreshToken: string,

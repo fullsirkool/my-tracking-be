@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/decorators/user.decorator';
 import {
   CreateChallengeDto,
@@ -20,6 +20,7 @@ export class ChallengeController {
   @Post()
   @UseGuards(JwtAdminAuthGuard)
   @ApiBody({ type: CreateChallengeDto })
+  @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard)
   async create(
     @Body() createChallengeDto: CreateChallengeDto,
