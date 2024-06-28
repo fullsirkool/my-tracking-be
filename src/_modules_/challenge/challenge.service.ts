@@ -114,7 +114,7 @@ export class ChallengeService {
   async find(
     findChallengeDto: FindChallengeDto,
   ): Promise<FindChallengeResponse> {
-    const { page, size, userId, ownerId } = findChallengeDto;
+    const { page, size, userId } = findChallengeDto;
     const skip = (page - 1) * size;
 
     const findChallengeCondition: Prisma.ChallengeWhereInput = {};
