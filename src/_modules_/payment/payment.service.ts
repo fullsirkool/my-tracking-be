@@ -72,6 +72,8 @@ export class PaymentService {
     return {
       ...data.data,
       paymentId,
+      accountNo: process.env.BANK_ACCOUNT_NUMBER,
+      bankName: process.env.BANK_NAME,
     };
   }
 
