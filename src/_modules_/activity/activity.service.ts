@@ -20,6 +20,7 @@ import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
 import { DateRangeType, getDateRange } from '../../utils/date-range.utils';
 import { UserService } from '../user/user.service';
 import { v4 as uuidv4 } from 'uuid';
+import moment from 'moment-timezone';
 
 @Injectable()
 export class ActivityService {
@@ -658,6 +659,11 @@ export class ActivityService {
 
   async manualCreateActivity(userId: number, manualCreateActivityDto: ManualCreateActivityDto) {
     const { distance, startDate, movingTime } = manualCreateActivityDto;
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId
+      }
+    })
     const id = uuidv4();
     const createActivityPayload: Prisma.ActivityUncheckedCreateInput = {
       distance,
@@ -672,10 +678,14 @@ export class ActivityService {
       createActivityPayload.averageSpeed = (paceToSecond * 1000) / distance;
     }
 
+    let createDate = new Date()
+
     if (startDate) {
-      createActivityPayload.startDate = new Date(startDate)
-      createActivityPayload.startDateLocal = new Date(startDate)
+      createDate = new Date(startDate)
     }
+    createActivityPayload.startDate = createDate
+    createActivityPayload.startDateLocal = createDate
+    createActivityPayload.name = `${user.name} - ${moment(createDate).tz('Asia/Bangkok').format('YYYYMMDDHHMM')}`
 
     const activity = await this.prisma.activity.create({
       data: createActivityPayload,
