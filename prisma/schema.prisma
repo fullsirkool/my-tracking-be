@@ -127,7 +127,6 @@ model Challenge {
 
 model Rule {
   id          Int        @id @unique @default(autoincrement())
-  title       String?
   target      Float?
   minPace     Float?     @map("min_pace")
   maxPace     Float?     @map("max_pace")

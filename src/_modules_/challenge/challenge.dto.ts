@@ -33,9 +33,6 @@ export class CreateChallengeDto {
   image: string;
 
   @OptionalProperty()
-  ruleTitle: string;
-
-  @OptionalProperty()
   @IsFloat
   target: number;
 

@@ -48,7 +48,6 @@ export class ChallengeService {
       endDate,
       status,
       image,
-      ruleTitle,
       target,
       minPace,
       maxPace,
@@ -97,9 +96,6 @@ export class ChallengeService {
 
     if (maxDistance) {
       createChallengePayload.rule.create.maxDistance = maxDistance;
-    }
-    if (ruleTitle) {
-      createChallengePayload.rule.create.title = ruleTitle;
     }
     if (target) {
       createChallengePayload.rule.create.target = target * 1000;
