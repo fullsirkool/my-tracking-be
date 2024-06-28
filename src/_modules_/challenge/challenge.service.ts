@@ -40,7 +40,6 @@ export class ChallengeService {
   ) {}
 
   async create(
-    ownerId: number,
     createChallengeDto: CreateChallengeDto,
   ): Promise<Challenge> {
     const {
@@ -67,22 +66,8 @@ export class ChallengeService {
       title,
       startDate: startDateInput,
       endDate: endDateInput,
-      owner: {
-        connect: {
-          id: ownerId,
-        },
-      },
       rule: {
         create: {},
-      },
-      challengeUsers: {
-        create: {
-          user: {
-            connect: {
-              id: ownerId,
-            },
-          },
-        },
       },
     };
 
@@ -141,26 +126,12 @@ export class ChallengeService {
         },
       };
     }
-    if (ownerId) {
-      findChallengeCondition.ownerId = ownerId;
-    }
 
     const [challenges, count] = await Promise.all([
       this.prisma.challenge.findMany({
         take: size,
         skip,
         where: findChallengeCondition,
-        include: {
-          owner: {
-            select: {
-              id: true,
-              stravaId: true,
-              firstName: true,
-              lastName: true,
-              profile: true,
-            },
-          },
-        },
         orderBy: {
           startDate: 'desc',
         },
@@ -179,15 +150,6 @@ export class ChallengeService {
         id,
       },
       include: {
-        owner: {
-          select: {
-            id: true,
-            stravaId: true,
-            firstName: true,
-            lastName: true,
-            profile: true,
-          },
-        },
         rule: true,
         challengeActivity: {
           select: {
@@ -278,8 +240,8 @@ export class ChallengeService {
     const {page, size, sort} = findChallengeUserDto
     const [sortField, order] = sort
     const offset = (page - 1) * size
-    console.log(offset, size, sortField, order)
-    return this.prisma.$queryRawUnsafe(`
+    const [users, count] = await Promise.all([
+      this.prisma.$queryRawUnsafe(`
       WITH USER_RESULT AS (
         SELECT u.id,first_name, last_name, profile_long, r.target, COALESCE((
         SELECT SUM(ac.distance) AS total_distance
@@ -299,7 +261,18 @@ export class ChallengeService {
       CASE WHEN (totalDistance / target) * 100 > 100 THEN 100
       ELSE (totalDistance / target) * 100
       END AS process 
-      FROM USER_RESULT`)
+      FROM USER_RESULT`),
+      this.prisma.challengeUser.count({
+        where: {
+          challengeId
+        }
+      })
+    ])
+
+    return {
+      ...getDefaultPaginationReponse(findChallengeUserDto, count),
+      data: users
+    }
   }
 
   async getChallengeCode(challengeId: number): Promise<string> {
@@ -310,34 +283,10 @@ export class ChallengeService {
     return `/challenge/join/${challenge.code}`;
   }
 
-  async joinChallenge(
+  async completejoinChallenge(
     userId: number,
     challengeId: number,
   ): Promise<ChallengeUser> {
-    const createdChallengeUser = await this.prisma.challengeUser.findFirst({
-      where: {
-        userId,
-        challengeId,
-      },
-      include: {
-        challenge: true,
-      },
-    });
-
-    if (createdChallengeUser) {
-      throw new ConflictException('User has joined this challenge!');
-    }
-
-    const challenge = await this.prisma.challenge.findUnique({
-      where: {
-        id: challengeId,
-      },
-    });
-
-    if (!challenge) {
-      throw new NotFoundException('Not Found Challenge!');
-    }
-
     const challengeUser = await this.prisma.challengeUser.create({
       data: {
         challenge: {
@@ -604,35 +553,4 @@ export class ChallengeService {
     };
   }
 
-  async findCreatedChallengesByUser(
-    id: number,
-    pagination: BasePagingDto,
-  ): Promise<BasePagingResponse<Challenge>> {
-    const user = await this.userService.findOne(id);
-
-    if (!user) {
-      throw new NotFoundException('Not found user!');
-    }
-
-    const { page, size } = pagination;
-    const skip = (page - 1) * size;
-
-    const [challenges, count] = await Promise.all([
-      this.prisma.challenge.findMany({
-        take: size,
-        skip,
-        where: {
-          ownerId: user.id,
-        },
-        orderBy: {
-          startDate: 'desc',
-        },
-      }),
-      this.prisma.challenge.count({ where: { ownerId: user.id } }),
-    ]);
-    return {
-      ...getDefaultPaginationReponse(pagination, count),
-      data: challenges,
-    };
-  }
 }

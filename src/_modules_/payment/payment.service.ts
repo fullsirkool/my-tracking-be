@@ -6,6 +6,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { PaymentType } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class PaymentService {
@@ -13,6 +15,7 @@ export class PaymentService {
     private readonly prisma: PrismaService,
     private readonly httpService: HttpService,
     private readonly eventEmitter: EventEmitter2,
+    @InjectQueue('challenge') private readonly challengeTaskQueue: Queue,
   ) {}
 
   async create(createPaymentDto: CreatePaymentDto) {
@@ -90,8 +93,42 @@ export class PaymentService {
         id: +paymentId,
       },
     });
+
+    const {challengeId, userId} = payment
+
+    await this.prisma.$transaction([
+      this.prisma.payment.update({
+        where: {
+          id: +paymentId,
+        },
+        data: {
+          isCompleted: true,
+          completedAt: new Date()
+        }
+      }),
+      this.prisma.challengeUser.create({
+        data: {
+          challenge: {
+            connect: {
+              id: challengeId,
+            },
+          },
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      })
+    ])
+
     this.eventEmitter.emit(`complete-payment/${paymentId}`, {
       data: { paymentId },
+    });
+
+    await this.challengeTaskQueue.add('import-activity', {
+      userId,
+      challengeId,
     });
     return { success: true };
   }

@@ -25,6 +25,8 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Post('')
+  @ApiBody({ type: CreateAdminDto })
+  @UseGuards(JwtAdminAuthGuard)
   async create(@Body() createAdminDto: CreateAdminDto) {
     return this.adminService.create(createAdminDto);
   }

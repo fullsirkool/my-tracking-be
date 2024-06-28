@@ -76,10 +76,6 @@ export class FindChallengeDto extends BasePagingDto {
   @OptionalProperty()
   @IsInteger
   userId: number;
-
-  @OptionalProperty()
-  @IsInteger
-  ownerId: number;
 }
 
 export class FindChallengeResponse extends BasePagingResponse<Challenge> {}
@@ -101,6 +97,7 @@ export class ActivityStatistics {
 }
 
 export class FindChallengeUserDto extends BasePagingDto {
+  @OptionalProperty()
   @Transform((param) => param.value.split(','))
   sort?: string[] = ['totalDistance', 'desc'];
 }

@@ -104,10 +104,10 @@ export class AuthService {
       data: sendUser,
     });
 
-    await this.activityTaskQueue.add('import-first', {
-      access_token,
-      findUser,
-    });
+    // await this.activityTaskQueue.add('import-first', {
+    //   access_token,
+    //   findUser,
+    // });
 
     return { success: true };
   }

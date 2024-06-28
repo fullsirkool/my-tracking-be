@@ -24,7 +24,6 @@ model User {
   capcha                 String?                  @default(uuid())
   activated              Boolean                  @default(false)
   activities             Activity[]
-  challenges             Challenge[]
   challengeUsers         ChallengeUser[]
   dailyActivity          DailyActivity[]
   challengeActivity      ChallengeActivity[]
@@ -112,13 +111,11 @@ model Challenge {
   title                  String
   startDate              DateTime                 @map("start_date")
   endDate                DateTime                 @map("end_date")
-  ownerId                Int                      @map("owner_id")
   code                   String?                  @unique @default(uuid())
   image                  String?
   ticketPrice            Float                    @default(0) @map("tiket_price")
   challengeType          ChallengeType            @default(ONE_VS_MANY) @map("challenge_type")
   status                 ChallengeStatus          @default(PUBLIC)
-  owner                  User                     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   challengeUsers         ChallengeUser[]
   rule                   Rule?
   challengeActivity      ChallengeActivity[]
@@ -149,6 +146,8 @@ model Payment {
   amount      Float       @map("amount")
   isCompleted Boolean     @default(false) @map("is_completed")
   paymentType PaymentType @default(REGIST_FEE) @map("payment_type")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  completedAt DateTime?   @map("completed_at")
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   challenge   Challenge   @relation(fields: [challengeId], references: [id], onDelete: Cascade)
 
