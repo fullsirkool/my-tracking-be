@@ -18,12 +18,13 @@ export class PaymentService {
     private readonly httpService: HttpService,
     private readonly eventEmitter: EventEmitter2,
     @InjectQueue('challenge') private readonly challengeTaskQueue: Queue,
-  ) {}
+  ) {
+  }
 
   async find(findPaymentDto: FindPaymentDto) {
-    const {createdAt, query, page, size} = findPaymentDto
+    const { createdAt, query, page, size } = findPaymentDto;
     const skip = (page - 1) * size;
-    const filter: Prisma.PaymentWhereInput = {}
+    const filter: Prisma.PaymentWhereInput = {};
     if (createdAt) {
       const startOfDay = moment(new Date(createdAt))
         .tz('Asia/Bangkok')
@@ -47,7 +48,7 @@ export class PaymentService {
               mode: 'insensitive',
               contains: query,
             },
-          }
+          },
         },
         {
           user: {
@@ -55,9 +56,9 @@ export class PaymentService {
               mode: 'insensitive',
               contains: query,
             },
-          }
-        }
-      ]
+          },
+        },
+      ];
     }
     const [payments, count] = await Promise.all([
       this.prisma.payment.findMany({
@@ -73,18 +74,18 @@ export class PaymentService {
               profile: true,
               name: true,
               stravaId: true,
-            }
-          }
-        }
+            },
+          },
+        },
       }),
       this.prisma.payment.count({
-        where: filter
-      })
-    ])
+        where: filter,
+      }),
+    ]);
     return {
       ...getDefaultPaginationReponse(findPaymentDto, count),
       data: payments,
-    }
+    };
   }
 
   async create(createPaymentDto: CreatePaymentDto) {
@@ -113,10 +114,10 @@ export class PaymentService {
       paymentId = payment.id;
     }
 
-    const accountNo = process.env.BANK_ACCOUNT_NUMBER
-    const accountName = process.env.BANK_ACCOUNT_NAME
-    const acqId = process.env.BANK_ACCOUNT_BIN
-    const bankName = process.env.BANK_NAME
+    const accountNo = process.env.BANK_ACCOUNT_NUMBER;
+    const accountName = process.env.BANK_ACCOUNT_NAME;
+    const acqId = process.env.BANK_ACCOUNT_BIN;
+    const bankName = process.env.BANK_NAME;
 
     const generateApiUrl = `${process.env.VIETQR_API}/generate`;
     const payload = {
@@ -151,6 +152,7 @@ export class PaymentService {
       paymentId,
       accountNo,
       bankName,
+      tiketPrice: amount,
     };
   }
 
@@ -163,7 +165,7 @@ export class PaymentService {
       },
     });
 
-    const {challengeId, userId} = payment
+    const { challengeId, userId } = payment;
 
     await this.prisma.$transaction([
       this.prisma.payment.update({
@@ -172,8 +174,8 @@ export class PaymentService {
         },
         data: {
           isCompleted: true,
-          completedAt: new Date()
-        }
+          completedAt: new Date(),
+        },
       }),
       this.prisma.challengeUser.create({
         data: {
@@ -188,8 +190,8 @@ export class PaymentService {
             },
           },
         },
-      })
-    ])
+      }),
+    ]);
 
     this.eventEmitter.emit(`complete-payment/${paymentId}`, {
       data: { paymentId },
