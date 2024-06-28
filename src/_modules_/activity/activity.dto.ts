@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber } from 'class-validator';
 import { Activity, User } from '@prisma/client';
-import { IsDateString } from 'class-validator';
-import { IsInteger } from 'src/decorators/validator.decorator';
+import { IsFloat, IsInteger, OptionalProperty } from 'src/decorators/validator.decorator';
 import { BasePagingDto, BasePagingResponse } from 'src/types/base.types';
 
 export type ShortActivity = Pick<Activity, 'id' | 'distance' | 'startDate'>;
-export class ManualCreateActivityDto {
+
+export class ManualImportActivityDto {
   @ApiProperty({
     required: true,
     description: 'This is require field',
@@ -48,10 +48,22 @@ export class FindActivityDto extends BasePagingDto {
   id: number;
 }
 
-export class FindActivityResponse extends BasePagingResponse<Activity> {}
+export class FindActivityResponse extends BasePagingResponse<Activity> {
+}
 
 export class DeleteActivityDto {
   @ApiProperty()
   @IsInteger
   stravaId: number;
+}
+
+export class ManualCreateActivityDto {
+  @ApiProperty()
+  @IsFloat
+  distance: number;
+  @ApiProperty()
+  @IsDateString()
+  startDate: string;
+  @OptionalProperty()
+  movingTime: string;
 }

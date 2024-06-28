@@ -1,12 +1,6 @@
 import { DailyActivityService } from '../daily-activty/daily-activty.service';
 import { catchError, firstValueFrom } from 'rxjs';
-import {
-  ConflictException,
-  ForbiddenException,
-  forwardRef,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { ConflictException, ForbiddenException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
@@ -17,6 +11,7 @@ import {
   FindActivityResponse,
   FindMonthlyActivityDto,
   ManualCreateActivityDto,
+  ManualImportActivityDto,
 } from './activity.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
@@ -24,6 +19,7 @@ import { Activity, Prisma } from '@prisma/client';
 import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
 import { DateRangeType, getDateRange } from '../../utils/date-range.utils';
 import { UserService } from '../user/user.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ActivityService {
@@ -35,7 +31,8 @@ export class ActivityService {
     private readonly dailyActivityService: DailyActivityService,
     private readonly userService: UserService,
     @InjectQueue('activity') private readonly activityTaskQueue: Queue,
-  ) {}
+  ) {
+  }
 
   async find(findActivityDto: FindActivityDto): Promise<FindActivityResponse> {
     const { page, size, date, id } = findActivityDto;
@@ -289,21 +286,24 @@ export class ActivityService {
     const { id, distance, movingTime, elapsedTime, startDateLocal, timezone } =
       activity;
 
-    let activityMinPace =
-      splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
-    let activityMaxPace =
-      splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
+    let activityMinPace = activity.averageSpeed / 1000
 
-    splits_metric.forEach((element) => {
-      const { distance, moving_time } = element;
-      if (distance < 100) {
-        return;
-      }
+    let activityMaxPace = activity.averageSpeed / 1000
 
-      const pace = moving_time / (distance / 1000);
-      activityMinPace = Math.min(activityMinPace, pace);
-      activityMaxPace = Math.max(activityMaxPace, pace);
-    });
+    if (splits_metric) {
+      activityMinPace = splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
+      activityMaxPace = splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
+      splits_metric.forEach((element) => {
+        const { distance, moving_time } = element;
+        if (distance < 100) {
+          return;
+        }
+
+        const pace = moving_time / (distance / 1000);
+        activityMinPace = Math.min(activityMinPace, pace);
+        activityMaxPace = Math.max(activityMaxPace, pace);
+      });
+    }
 
     const challenges = await this.prisma.challengeUser.findMany({
       where: {
@@ -500,8 +500,8 @@ export class ActivityService {
     return activities;
   }
 
-  async manualCreateActivity(manualCreateActivityDto: ManualCreateActivityDto) {
-    const { stravaId, activityId } = manualCreateActivityDto;
+  async manualImportActivity(manualImportActivityDto: ManualImportActivityDto) {
+    const { stravaId, activityId } = manualImportActivityDto;
 
     const owner = await this.userService.findByStravaId(stravaId);
 
@@ -655,4 +655,38 @@ export class ActivityService {
       }),
     );
   }
+
+  async manualCreateActivity(userId: number, manualCreateActivityDto: ManualCreateActivityDto) {
+    const { distance, startDate, movingTime } = manualCreateActivityDto;
+    const id = uuidv4();
+    const createActivityPayload: Prisma.ActivityUncheckedCreateInput = {
+      distance,
+      userId,
+      id,
+    };
+    if (movingTime) {
+      const [hour, minute, second] = movingTime.split(':');
+      const hourToMinute = Number(hour) * 60 + minute;
+      const paceToSecond = Number(hourToMinute) * 60 + Number(second);
+      createActivityPayload.movingTime = paceToSecond;
+      createActivityPayload.averageSpeed = (paceToSecond * 1000) / distance;
+    }
+
+    if (startDate) {
+      createActivityPayload.startDate = new Date(startDate)
+      createActivityPayload.startDateLocal = new Date(startDate)
+    }
+
+    const activity = await this.prisma.activity.create({
+      data: createActivityPayload,
+    });
+
+    await this.activityTaskQueue.add('import', {
+      userId,
+      activity,
+    });
+
+    return activity
+  }
+
 }

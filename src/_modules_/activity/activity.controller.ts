@@ -1,26 +1,23 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  Param,
-  Query,
-  Delete,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ActivityService } from './activity.service';
 import { response } from 'express';
 import {
-  ManualCreateActivityDto,
-  FindMonthlyActivityDto,
-  FindActivityDto,
   DeleteActivityDto,
+  FindActivityDto,
+  FindMonthlyActivityDto,
+  ManualCreateActivityDto,
+  ManualImportActivityDto,
 } from './activity.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { Auth } from '../../decorators/auth.decorator';
+import { User } from '../../decorators/user.decorator';
 
 @Controller('activity')
 @ApiTags('activity')
 export class ActivityController {
-  constructor(private readonly activityService: ActivityService) {}
+  constructor(private readonly activityService: ActivityService) {
+  }
 
   @Post('/event')
   createActivity(@Body() data) {
@@ -28,10 +25,17 @@ export class ActivityController {
   }
 
   @Post()
-  async manualCreate(@Body() manualCreateActivityDto: ManualCreateActivityDto) {
-    return await this.activityService.manualCreateActivity(
-      manualCreateActivityDto,
+  async manualCreate(@Body() manualImportActivityDto: ManualImportActivityDto) {
+    return await this.activityService.manualImportActivity(
+      manualImportActivityDto,
     );
+  }
+
+  @Post('/manual')
+  @UseGuards(JwtAuthGuard)
+  @Auth()
+  async manualCreateActivity(@User('id') userId: number, @Body() manualCreateActivityDto: ManualCreateActivityDto) {
+    return this.activityService.manualCreateActivity(userId, manualCreateActivityDto);
   }
 
   @Get('/event')
