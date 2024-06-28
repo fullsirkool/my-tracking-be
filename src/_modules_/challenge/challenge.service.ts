@@ -238,7 +238,7 @@ export class ChallengeService {
     const [users, count] = await Promise.all([
       this.prisma.$queryRawUnsafe(`
       WITH USER_RESULT AS (
-        SELECT u.id,first_name, last_name, profile_long, r.target, COALESCE((
+        SELECT u.id,name, profile_long as profileLong, r.target, COALESCE((
         SELECT SUM(ac.distance) AS total_distance
         FROM challenge_activity ca
         JOIN activity ac ON ac.id = ca.activity_id
