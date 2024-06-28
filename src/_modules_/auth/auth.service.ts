@@ -74,6 +74,8 @@ export class AuthService {
     const { refresh_token, access_token } = data;
     const { id, firstname, lastname, profile } = data.athlete;
 
+    const name = `${firstname} ${lastname}`
+
     const connectedUser = await this.userService.findByStravaId(id);
 
     if (connectedUser) {
@@ -84,8 +86,7 @@ export class AuthService {
 
     const sendUser = {
       stravaId: id,
-      firstName: firstname,
-      lastName: lastname,
+      name,
       profile,
       stravaRefreshToken: refresh_token,
     };
