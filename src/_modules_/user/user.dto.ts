@@ -1,7 +1,6 @@
 export class CreateUserDto {
   stravaId: number;
-  firstName: string;
-  lastName: string;
+  name: string;
   profile: string;
   stravaRefreshToken: string;
 }

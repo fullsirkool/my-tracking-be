@@ -161,7 +161,7 @@ export class AuthService {
       throw new UnauthorizedException('Not found token');
     }
     const isValidToken = moment()
-      .tz('Asia/Ho_Chi_Minh')
+      .tz('Asia/Bangkok')
       .isSameOrBefore(foundToken.expiredDate);
     if (!isValidToken) {
       await this.prisma.userToken.delete({
@@ -176,9 +176,9 @@ export class AuthService {
   }
 
   private async generateTokens(user: User) {
-    const { id, stravaId, firstName, lastName, profile } = user;
+    const { id, stravaId, profile } = user;
     const accessToken = this.jwtService.sign(
-      { id, stravaId, firstName, lastName, profile },
+      { id, stravaId, profile },
       {
         expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
         secret: process.env.ACCESS_TOKEN_SECRET,
@@ -198,7 +198,7 @@ export class AuthService {
     );
 
     const expiredDate = moment
-      .tz('Asia/Ho_Chi_Minh')
+      .tz('Asia/Bangkok')
       .add(number, range)
       .toDate();
 
@@ -260,7 +260,7 @@ export class AuthService {
   }
 
   async create(signUpDto: SignUpDto) {
-    const { email, password, firstName, lastName, sex } = signUpDto;
+    const { email, password, name, sex } = signUpDto;
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -276,8 +276,7 @@ export class AuthService {
       data: {
         email,
         password: hash,
-        firstName,
-        lastName,
+        name,
         sex,
       },
     });
@@ -384,7 +383,7 @@ export class AuthService {
       user = await this.prisma.user.create({
         data: {
           email,
-          firstName: displayName,
+          name: displayName,
           profile: photoURL,
           activated: true,
         },

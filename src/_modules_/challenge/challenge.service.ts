@@ -154,8 +154,7 @@ export class ChallengeService {
               select: {
                 id: true,
                 stravaId: true,
-                firstName: true,
-                lastName: true,
+                name: true,
                 profile: true,
               },
             },

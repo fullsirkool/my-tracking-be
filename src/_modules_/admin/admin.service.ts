@@ -85,7 +85,7 @@ export class AdminService {
     );
 
     const expiredDate = moment
-      .tz('Asia/Ho_Chi_Minh')
+      .tz('Asia/Bangkok')
       .add(number, range)
       .toDate();
 
@@ -125,7 +125,7 @@ export class AdminService {
       throw new UnauthorizedException('Not found token');
     }
     const isValidToken = moment()
-      .tz('Asia/Ho_Chi_Minh')
+      .tz('Asia/Bangkok')
       .isSameOrBefore(foundToken.expiredDate);
     if (!isValidToken) {
       await this.prisma.adminToken.delete({

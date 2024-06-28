@@ -6,7 +6,7 @@ export type AuthStatus = AdminStatus | 'ALL';
 
 export type UserClaims = Pick<
   User,
-  'id' | 'stravaId' | 'firstName' | 'lastName' | 'profile'
+  'id' | 'stravaId' | 'name' | 'profile'
 >;
 
 export type AuthRole = 'RUNNER' | 'ADMIN' | 'ALL';

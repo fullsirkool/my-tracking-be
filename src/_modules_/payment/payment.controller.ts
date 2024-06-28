@@ -1,10 +1,12 @@
-import {Body, Controller, Param, Post, Sse} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Sse, UseGuards } from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { CompletePaymentDto } from './payment.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { CompletePaymentDto, FindPaymentDto } from './payment.dto';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { fromEvent, Observable, take } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { CreateAdminDto } from '../admin/admin.dto';
+import { JwtAdminAuthGuard } from '../../guards/jwt-admin-auth.guard';
 
 @Controller('payment')
 @ApiTags('payment')
@@ -27,5 +29,12 @@ export class PaymentController {
         return new MessageEvent('complete-payment', { data });
       }),
     );
+  }
+
+  @Get("")
+  @ApiBody({ type: CreateAdminDto })
+  @UseGuards(JwtAdminAuthGuard)
+  getPayment(@Query() findPaymentDto : FindPaymentDto) {
+    return this.paymentService.find(findPaymentDto)
   }
 }

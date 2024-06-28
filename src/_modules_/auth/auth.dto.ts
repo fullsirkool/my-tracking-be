@@ -77,14 +77,12 @@ export class SignUpDto {
     description: 'This is require field',
   })
   @IsNotEmpty()
-  firstName: string;
+  name: string;
 
   @ApiProperty({
     required: true,
     description: 'This is require field',
   })
-  @IsNotEmpty()
-  lastName: string;
 
   @ApiProperty({
     required: true,

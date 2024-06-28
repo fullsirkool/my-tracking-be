@@ -16,8 +16,7 @@ model User {
   googleId               String?                  @unique @map(name: "google_id")
   email                  String?                  @unique @map(name: "email")
   password               String?                  @map(name: "password")
-  firstName              String?                  @map(name: "first_name")
-  lastName               String?                  @map(name: "last_name")
+  name                   String?
   sex                    String?
   profile                String?                  @map(name: "profile_long")
   stravaRefreshToken     String?                  @map(name: "strava_refresh_token")

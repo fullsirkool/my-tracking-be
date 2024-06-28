@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
-import { CompletePaymentDto, CreatePaymentDto } from './payment.dto';
+import { CompletePaymentDto, CreatePaymentDto, FindPaymentDto } from './payment.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
-import { PaymentType } from '@prisma/client';
+import { PaymentType, Prisma } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class PaymentService {
@@ -17,6 +18,67 @@ export class PaymentService {
     private readonly eventEmitter: EventEmitter2,
     @InjectQueue('challenge') private readonly challengeTaskQueue: Queue,
   ) {}
+
+  async find(findPaymentDto: FindPaymentDto) {
+    const {createdAt, query, page, size} = findPaymentDto
+    const skip = (page - 1) * size;
+    const filter: Prisma.PaymentWhereInput = {}
+    if (createdAt) {
+      const startOfDay = moment(new Date(createdAt))
+        .tz('Asia/Bangkok')
+        .startOf('day')
+        .toDate();
+      const endOfDay = moment(new Date(createdAt))
+        .tz('Asia/Bangkok')
+        .endOf('day')
+        .toDate();
+      filter.createdAt = {
+        gte: startOfDay,
+        lte: endOfDay,
+      };
+    }
+
+    if (query) {
+      filter.OR = [
+        {
+          challenge: {
+            title: {
+              mode: 'insensitive',
+              contains: query,
+            },
+          }
+        },
+        {
+          user: {
+            name: {
+              mode: 'insensitive',
+              contains: query,
+            },
+          }
+        }
+      ]
+    }
+    this.prisma.payment.findMany({
+      where: {},
+      skip,
+      take: size,
+      include: {
+        challenge: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            profile: true,
+            name: true,
+            stravaId: true,
+          }
+        }
+      }
+    })
+    return {
+
+    }
+  }
 
   async create(createPaymentDto: CreatePaymentDto) {
     const { userId, challengeId, amount } = createPaymentDto;
