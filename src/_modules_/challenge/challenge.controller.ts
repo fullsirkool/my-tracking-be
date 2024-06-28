@@ -1,12 +1,8 @@
-import { Controller, Post, Body, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/decorators/user.decorator';
-import {
-  CreateChallengeDto,
-  FindChallengeDto,
-  FindChallengeResponse, FindChallengeUserDto,
-} from './challenge.dto';
+import { CreateChallengeDto, FindChallengeDto, FindChallengeResponse, FindChallengeUserDto } from './challenge.dto';
 import { Auth } from 'src/decorators/auth.decorator';
 import { Challenge } from '@prisma/client';
 import { BasePagingDto } from 'src/types/base.types';
@@ -15,7 +11,8 @@ import { JwtAdminAuthGuard } from '../../guards/jwt-admin-auth.guard';
 @Controller('challenge')
 @ApiTags('challenge')
 export class ChallengeController {
-  constructor(private readonly challengeService: ChallengeService) {}
+  constructor(private readonly challengeService: ChallengeService) {
+  }
 
   @Post()
   @UseGuards(JwtAdminAuthGuard)
@@ -62,7 +59,7 @@ export class ChallengeController {
   }
 
   @Get('/:id/user')
-  async findUserForChallenge(@Param('id') id: number, @Query() findChallengeUserDto: FindChallengeUserDto){
+  async findUserForChallenge(@Param('id') id: number, @Query() findChallengeUserDto: FindChallengeUserDto) {
     return await this.challengeService.findUserForChallenge(id, findChallengeUserDto);
   }
 
@@ -74,6 +71,20 @@ export class ChallengeController {
     return await this.challengeService.findJoinedChallengesByUser(
       id,
       pagination,
+    );
+  }
+
+  @Get('/check-join/:id')
+  @Auth()
+  async checkJoinedChallengeUser(
+    @Param('id') challengeId: number,
+    @User('id') userId: number,
+  ) {
+    return await this.challengeService.checkJoinChallenge(
+      {
+        challengeId,
+        userId,
+      },
     );
   }
 }

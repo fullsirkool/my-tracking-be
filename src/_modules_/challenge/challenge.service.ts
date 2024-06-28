@@ -1,23 +1,7 @@
-import {
-  ConflictException,
-  Injectable,
-  NotAcceptableException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import {
-  Activity,
-  Challenge,
-  ChallengeUser,
-  Prisma,
-  User,
-} from '@prisma/client';
+import { ConflictException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { Activity, Challenge, ChallengeUser, Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  CreateChallengeDto,
-  FindChallengeDto,
-  FindChallengeResponse, FindChallengeUserDto,
-} from './challenge.dto';
+import { CreateChallengeDto, FindChallengeDto, FindChallengeResponse, FindChallengeUserDto } from './challenge.dto';
 import { BasePagingDto, BasePagingResponse } from 'src/types/base.types';
 import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
 import * as moment from 'moment-timezone';
@@ -37,7 +21,8 @@ export class ChallengeService {
     private readonly authService: AuthService,
     private readonly userService: UserService,
     @InjectQueue('challenge') private readonly challengeTaskQueue: Queue,
-  ) {}
+  ) {
+  }
 
   async create(
     createChallengeDto: CreateChallengeDto,
@@ -232,9 +217,9 @@ export class ChallengeService {
   }
 
   async findUserForChallenge(challengeId: number, findChallengeUserDto: FindChallengeUserDto) {
-    const {page, size, sort} = findChallengeUserDto
-    const [sortField, order] = sort
-    const offset = (page - 1) * size
+    const { page, size, sort } = findChallengeUserDto;
+    const [sortField, order] = sort;
+    const offset = (page - 1) * size;
     const [users, count] = await Promise.all([
       this.prisma.$queryRawUnsafe(`
       WITH USER_RESULT AS (
@@ -261,15 +246,15 @@ export class ChallengeService {
     `),
       this.prisma.challengeUser.count({
         where: {
-          challengeId
-        }
-      })
-    ])
+          challengeId,
+        },
+      }),
+    ]);
 
     return {
       ...getDefaultPaginationReponse(findChallengeUserDto, count),
-      data: users
-    }
+      data: users,
+    };
   }
 
   async getChallengeCode(challengeId: number): Promise<string> {
@@ -547,6 +532,25 @@ export class ChallengeService {
     return {
       ...getDefaultPaginationReponse(pagination, count),
       data: challenges,
+    };
+  }
+
+  async checkJoinChallenge({ userId, challengeId }) {
+    const joined = await this.prisma.challengeUser.findFirst({
+      where: {
+        challengeId,
+        userId,
+      },
+    });
+
+    if (joined) {
+      return {
+        joined: true,
+      };
+    }
+
+    return {
+      joined: false,
     };
   }
 
