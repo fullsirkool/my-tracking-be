@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/decorators/user.decorator';
@@ -10,6 +10,7 @@ import {
 import { Auth } from 'src/decorators/auth.decorator';
 import { Challenge } from '@prisma/client';
 import { BasePagingDto } from 'src/types/base.types';
+import { JwtAdminAuthGuard } from '../../guards/jwt-admin-auth.guard';
 
 @Controller('challenge')
 @ApiTags('challenge')
@@ -17,14 +18,13 @@ export class ChallengeController {
   constructor(private readonly challengeService: ChallengeService) {}
 
   @Post()
-  @Auth()
+  @UseGuards(JwtAdminAuthGuard)
   @ApiBody({ type: CreateChallengeDto })
   // @UseGuards(JwtAuthGuard)
   async create(
-    @User('id') userId: number,
     @Body() createChallengeDto: CreateChallengeDto,
   ): Promise<Challenge> {
-    return await this.challengeService.create(userId, createChallengeDto);
+    return await this.challengeService.create(createChallengeDto);
   }
 
   @Get('/code/:id')
@@ -71,17 +71,6 @@ export class ChallengeController {
     @Query() pagination: BasePagingDto,
   ) {
     return await this.challengeService.findJoinedChallengesByUser(
-      id,
-      pagination,
-    );
-  }
-
-  @Get('/user/created/:id')
-  async findCreatedChallengesByUser(
-    @Param('id') id: number,
-    @Query() pagination: BasePagingDto,
-  ) {
-    return await this.challengeService.findCreatedChallengesByUser(
       id,
       pagination,
     );
