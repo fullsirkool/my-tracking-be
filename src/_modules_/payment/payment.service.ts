@@ -41,11 +41,16 @@ export class PaymentService {
       paymentId = payment.id;
     }
 
+    const accountNo = process.env.BANK_ACCOUNT_NUMBER
+    const accountName = process.env.BANK_ACCOUNT_NAME
+    const acqId = process.env.BANK_ACCOUNT_BIN
+    const bankName = process.env.BANK_NAME
+
     const generateApiUrl = `${process.env.VIETQR_API}/generate`;
     const payload = {
-      accountNo: process.env.BANK_ACCOUNT_NUMBER,
-      acqId: process.env.BANK_ACCOUNT_BIN,
-      accountName: process.env.BANK_ACCOUNT_NAME,
+      accountNo,
+      acqId,
+      accountName,
       amount: amount,
       addInfo: `JOINCHALLENGE ${paymentId}`,
       format: 'text',
@@ -72,8 +77,8 @@ export class PaymentService {
     return {
       ...data.data,
       paymentId,
-      accountNo: process.env.BANK_ACCOUNT_NUMBER,
-      bankName: process.env.BANK_NAME,
+      accountNo,
+      bankName,
     };
   }
 
