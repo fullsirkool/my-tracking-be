@@ -14,6 +14,7 @@ import { FirebaseModule } from './_modules_/firebase/firebase.module';
 import { BullModule } from '@nestjs/bull';
 import { MailModule } from './_modules_/mail/mail.module';
 import { PaymentModule } from './_modules_/payment/payment.module';
+import { S3Module } from './_modules_/s3/s3.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { PaymentModule } from './_modules_/payment/payment.module';
     }),
     MailModule,
     PaymentModule,
+    S3Module,
   ],
   controllers: [AppController],
   providers: [AppService],
