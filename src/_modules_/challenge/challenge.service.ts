@@ -227,23 +227,22 @@ export class ChallengeService {
         SELECT SUM(ac.distance) AS total_distance
         FROM challenge_activity ca
         INNER JOIN activity ac ON ac.id = ca.activity_id
-        INNER JOIN challenge chn ON chn.id = ca.challenge_id
         INNER JOIN "user" su ON su.id = ca.user_id
-        WHERE su.id = u.id
-    ), 0) AS totalDistance
-    FROM "user" u
-    INNER JOIN challenge_user cu ON cu.user_id = u.id
-    INNER JOIN challenge ch ON ch.id = cu.challenge_id
-    INNER JOIN "rule" r ON ch.id = r.challenge_id
-    WHERE ch.id = ${challengeId}
-  )
-    SELECT *,
-      CASE WHEN (totalDistance / target) * 100 > 100 THEN 100
-    ELSE (totalDistance / target) * 100
-    END AS process
-    FROM USER_RESULT
-    ORDER BY ${sortField} ${order} LIMIT ${size} OFFSET ${offset}
-    `),
+        WHERE su.id = u.id AND ca.challenge_id = ${challengeId}
+      ), 0) AS totalDistance
+      FROM "user" u
+      INNER JOIN challenge_user cu ON cu.user_id = u.id
+      INNER JOIN challenge ch ON ch.id = cu.challenge_id
+      INNER JOIN "rule" r ON ch.id = r.challenge_id
+      WHERE ch.id = ${challengeId}
+    )
+      SELECT *,
+        CASE WHEN (totalDistance / target) * 100 > 100 THEN 100
+      ELSE (totalDistance / target) * 100
+      END AS process
+      FROM USER_RESULT
+      ORDER BY ${sortField} ${order} LIMIT ${size} OFFSET ${offset}
+      `),
       this.prisma.challengeUser.count({
         where: {
           challengeId,
