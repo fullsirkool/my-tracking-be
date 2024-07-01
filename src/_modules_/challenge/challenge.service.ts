@@ -38,7 +38,7 @@ export class ChallengeService {
       minDistance,
       maxDistance,
       description,
-      tiketPrice
+      ticketPrice
     } = createChallengeDto;
 
     const startDateInput = new Date(startDate);
@@ -58,8 +58,8 @@ export class ChallengeService {
     if (description) {
       createChallengePayload.description = description;
     }
-    if (tiketPrice) {
-      createChallengePayload.ticketPrice = tiketPrice;
+    if (ticketPrice) {
+      createChallengePayload.ticketPrice = ticketPrice;
     }
     if (image) {
       createChallengePayload.image = image;

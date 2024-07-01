@@ -18,7 +18,6 @@ export class ChallengeController {
   @UseGuards(JwtAdminAuthGuard)
   @ApiBody({ type: CreateChallengeDto })
   @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard)
   async create(
     @Body() createChallengeDto: CreateChallengeDto,
   ): Promise<Challenge> {

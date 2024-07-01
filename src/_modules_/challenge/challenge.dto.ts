@@ -52,7 +52,7 @@ export class CreateChallengeDto {
   maxDistance: number;
 
   @OptionalProperty()
-  tiketPrice: number;
+  ticketPrice: number;
 }
 
 export class CreateChallengeCodeDto {
