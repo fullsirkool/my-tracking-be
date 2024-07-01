@@ -227,8 +227,8 @@ export class ChallengeService {
         SELECT SUM(ac.distance) AS total_distance
         FROM challenge_activity ca
         INNER JOIN activity ac ON ac.id = ca.activity_id
-        INNER JOIN challenge chn ON chn.id = ch.id
-        INNER JOIN "user" su ON ca.user_id = su.id
+        INNER JOIN challenge chn ON chn.id = ca.challenge_id
+        INNER JOIN "user" su ON ca.user_id = ca.user_id
         WHERE su.id = u.id
     ), 0) AS totalDistance
     FROM "user" u
