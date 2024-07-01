@@ -45,6 +45,10 @@ export class CreateChallengeDto {
   maxPace: string;
 
   @OptionalProperty()
+  @IsString()
+  description: string;
+
+  @OptionalProperty()
   @IsFloat
   minDistance: number;
 
@@ -52,15 +56,9 @@ export class CreateChallengeDto {
   @IsFloat
   maxDistance: number;
 
-  @ApiProperty({
-    enum: ChallengeStatus,
-  })
-  status: ChallengeStatus;
-
-  @ApiProperty({
-    enum: ChallengeType,
-  })
-  challengeType: ChallengeType;
+  @OptionalProperty()
+  @IsFloat
+  tiketPrice: number;
 }
 
 export class CreateChallengeCodeDto {

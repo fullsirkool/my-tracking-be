@@ -31,14 +31,14 @@ export class ChallengeService {
       title,
       startDate,
       endDate,
-      status,
       image,
       target,
       minPace,
       maxPace,
       minDistance,
       maxDistance,
-      challengeType,
+      description,
+      tiketPrice
     } = createChallengeDto;
 
     const startDateInput = new Date(startDate);
@@ -55,11 +55,11 @@ export class ChallengeService {
       },
     };
 
-    if (status) {
-      createChallengePayload.status = status;
+    if (description) {
+      createChallengePayload.description = description;
     }
-    if (challengeType) {
-      createChallengePayload.challengeType = challengeType;
+    if (tiketPrice) {
+      createChallengePayload.ticketPrice = tiketPrice;
     }
     if (image) {
       createChallengePayload.image = image;
