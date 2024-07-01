@@ -32,32 +32,26 @@ export class CreateChallengeDto {
   @IsNotEmpty()
   image: string;
 
-  @OptionalProperty()
+  @ApiProperty({ required: true })
   @IsFloat
   target: number;
 
   @OptionalProperty()
-  @IsString()
   minPace: string;
 
   @OptionalProperty()
-  @IsString()
   maxPace: string;
 
   @OptionalProperty()
-  @IsString()
   description: string;
 
   @OptionalProperty()
-  @IsFloat
   minDistance: number;
 
   @OptionalProperty()
-  @IsFloat
   maxDistance: number;
 
   @OptionalProperty()
-  @IsFloat
   tiketPrice: number;
 }
 
