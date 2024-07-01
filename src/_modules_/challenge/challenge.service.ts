@@ -320,11 +320,25 @@ export class ChallengeService {
 
     const { ticketPrice } = challenge;
 
-    return this.paymentService.create({
+    if (ticketPrice) {
+      const payment = await this.paymentService.create({
+        userId,
+        challengeId,
+        amount: ticketPrice,
+      });
+
+      return {
+        paymentInfor: payment,
+        status: 'WAITTING'
+      }
+    }
+
+    await this.challengeTaskQueue.add('import-activity', {
       userId,
       challengeId,
-      amount: ticketPrice,
     });
+
+    return {status: 'COMPLETED'}
   }
 
   async importActivitiesAfterJoinChallenge(
