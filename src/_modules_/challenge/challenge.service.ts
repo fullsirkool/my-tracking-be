@@ -333,6 +333,21 @@ export class ChallengeService {
       }
     }
 
+    await this.prisma.challengeUser.create({
+      data: {
+        challenge: {
+          connect: {
+            id: challengeId,
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    })
+
     await this.challengeTaskQueue.add('import-activity', {
       userId,
       challengeId,
