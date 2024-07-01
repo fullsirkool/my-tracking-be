@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum } from 'class-validator';
 
 export enum FileType {
-  CHALLENGE_BACKGROUND = 'USER_AVATAR',
+  CHALLENGE_BACKGROUND = 'CHALLENGE_BACKGROUND',
   TRACKLOG_EVIDENT = 'TRACKLOG_EVIDENT',
 }
 
