@@ -688,9 +688,14 @@ export class ActivityService {
     if (startDate) {
       createDate = new Date(startDate);
     }
+
+    console.log(createDate)
+
+    const activityName = `${user.name} - ${createDate.getTime()}`
+    console.log(activityName)
     createActivityPayload.startDate = createDate;
     createActivityPayload.startDateLocal = createDate;
-    createActivityPayload.name = `${user.name} - ${moment(createDate).tz('Asia/Bangkok').format('YYYY-MM-DD hh:mm')}`;
+    createActivityPayload.name = `${user.name} - `;
 
     const activity = await this.prisma.activity.create({
       data: createActivityPayload,
