@@ -51,7 +51,7 @@
     "firebase-admin": "^11.11.0",
     "moment-timezone": "^0.5.43",
     "nestjs-mailer": "^1.0.1",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^6.9.9",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",

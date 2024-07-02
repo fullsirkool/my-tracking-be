@@ -11,6 +11,7 @@ export class MailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
+      service: 'Google',
       host: process.env.MAIL_HOST,
       port: 587,
       secure: false,
