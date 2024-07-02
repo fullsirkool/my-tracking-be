@@ -195,10 +195,7 @@ export class AuthService {
       process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
     );
 
-    const expiredDate = moment
-      .tz('Asia/Bangkok')
-      .add(number, range)
-      .toDate();
+    const expiredDate = moment.tz('Asia/Bangkok').add(number, range).toDate();
 
     await this.prisma.userToken.create({
       data: {
@@ -282,22 +279,6 @@ export class AuthService {
     return { success: true };
   }
 
-  async verify(capcha: string) {
-    const findUser = await this.prisma.user.findFirst({
-      where: { capcha },
-    });
-    if (!findUser) {
-      throw new NotFoundException('Could not find account with capcha!');
-    }
-    return this.prisma.user.update({
-      where: { id: findUser.id },
-      data: {
-        capcha: null,
-        activated: true,
-      },
-    });
-  }
-
   async signIn(signInDto: SignInDto) {
     const { email, password } = signInDto;
     const user = await this.userService.findByEmail(email);
@@ -318,30 +299,6 @@ export class AuthService {
       refreshToken,
       expireTime: +process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
     };
-  }
-
-  async resendEmail(signInDto: SignInDto) {
-    const { email, password } = signInDto;
-    const user = await this.userService.findByEmail(email);
-    if (!user) {
-      throw new NotFoundException('Not found user!');
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      throw new UnauthorizedException('Email or password is incorrect!');
-    }
-
-    const { capcha } = user;
-
-    const url = `${process.env.APP_URL}/confirm/${capcha}`;
-    await this.mailService.confirmAccount({
-      to: email,
-      url,
-      subject: 'Welcome To My Tracking',
-    });
-    return { success: true };
   }
 
   async signInGoogle(signInGoogleDto: SignInGoogleDto) {
@@ -367,7 +324,6 @@ export class AuthService {
           email,
           name: displayName,
           profile: photoURL,
-          activated: true,
         },
       });
     }

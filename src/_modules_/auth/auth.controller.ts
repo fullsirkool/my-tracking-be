@@ -76,19 +76,6 @@ export class AuthController {
   ) {
     return this.authService.complete(userId, completeUserDto);
   }
-
-  @Patch('/verify/:capcha')
-  @UseInterceptors(UserTransformInterceptor)
-  async verify(@Param('capcha') capcha: string) {
-    return this.authService.verify(capcha);
-  }
-
-  @ApiBody({ type: SignInDto })
-  @Post('/resend-email')
-  async resendEmail(@Body() signInDto: SignInDto) {
-    return this.authService.resendEmail(signInDto);
-  }
-
   @ApiBody({ type: SignInGoogleDto })
   @Post('/google/sign-in')
   async signInGoogle(@Body() signInGoogleDto: SignInGoogleDto) {

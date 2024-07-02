@@ -19,7 +19,6 @@ model User {
   sex                    String?
   profile                String?                  @map(name: "profile_long")
   stravaRefreshToken     String?                  @map(name: "strava_refresh_token")
-  capcha                 String?                  @default(uuid())
   activities             Activity[]
   challengeUsers         ChallengeUser[]
   dailyActivity          DailyActivity[]
