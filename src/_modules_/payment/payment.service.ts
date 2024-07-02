@@ -102,7 +102,7 @@ export class PaymentService {
     });
 
     let paymentId = createdPayment?.id;
-    const paymentCode = createdPayment ? createdPayment.paymentCode : moment().tz('Asia/Bangkok').toDate().getTime()
+    const paymentCode = createdPayment ? createdPayment.paymentCode : moment().tz('Asia/Bangkok').toDate().getTime();
     if (!createdPayment) {
       const payment = await this.prisma.payment.create({
         data: {
@@ -159,7 +159,7 @@ export class PaymentService {
 
   async complete(completePaymentDto: CompletePaymentDto) {
     const { message } = completePaymentDto;
-    const paymentCode = this.desctructMessage(message)
+    const paymentCode = this.desctructMessage(message);
     const payment = await this.prisma.payment.findUnique({
       where: {
         paymentCode,
@@ -209,12 +209,16 @@ export class PaymentService {
     const amountRegex = /(\+|-)[\d,]+/;
     const contentRegex = /ND: JOINCHALLENGE (\d+)/;
     const match = sms.match(contentRegex);
+    const amountMatch = sms.match(amountRegex);
+    const transferredAmount = amountMatch
+      ? parseFloat(amountMatch[0].replace(/[\+,]/g, ''))
+      : null;
 
-    if (match) {
+    if (match && transferredAmount) {
       const extractedText = match[1];
       console.log(extractedText);
-      return extractedText
+      return extractedText;
     }
-    return null
+    return null;
   }
 }
