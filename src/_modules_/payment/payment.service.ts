@@ -154,6 +154,7 @@ export class PaymentService {
       accountNo,
       bankName,
       tiketPrice: amount,
+      paymentMessage: `JOINCHALLENGE ${paymentCode}`,
     };
   }
 
