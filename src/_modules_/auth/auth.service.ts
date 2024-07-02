@@ -279,14 +279,6 @@ export class AuthService {
       },
     });
 
-    const { capcha } = createdUser;
-    const url = `${process.env.APP_URL}/confirm/${capcha}`;
-
-    await this.authTaskQueue.add('send-mail', {
-      email,
-      url,
-    });
-
     return { success: true };
   }
 
@@ -317,14 +309,6 @@ export class AuthService {
 
     if (!isMatch) {
       throw new UnauthorizedException('Email or password is incorrect!');
-    }
-
-    const { activated } = user;
-
-    if (!activated) {
-      throw new UnauthorizedException(
-        'Your account has not verified. Please check your email to active your account!',
-      );
     }
 
     const { accessToken, refreshToken } = await this.generateTokens(user);

@@ -13,7 +13,6 @@ datasource db {
 model User {
   id                     Int                      @id @unique @default(autoincrement())
   stravaId               Int?                     @map(name: "strava_id")
-  googleId               String?                  @unique @map(name: "google_id")
   email                  String?                  @unique @map(name: "email")
   password               String?                  @map(name: "password")
   name                   String?
@@ -21,7 +20,6 @@ model User {
   profile                String?                  @map(name: "profile_long")
   stravaRefreshToken     String?                  @map(name: "strava_refresh_token")
   capcha                 String?                  @default(uuid())
-  activated              Boolean                  @default(false)
   activities             Activity[]
   challengeUsers         ChallengeUser[]
   dailyActivity          DailyActivity[]
