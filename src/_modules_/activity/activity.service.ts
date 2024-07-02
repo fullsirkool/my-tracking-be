@@ -15,7 +15,7 @@ import {
 } from './activity.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-import { Activity, Prisma } from '@prisma/client';
+import { Activity, ActivityType, Prisma } from '@prisma/client';
 import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
 import { DateRangeType, getDateRange } from '../../utils/date-range.utils';
 import { UserService } from '../user/user.service';
@@ -287,9 +287,9 @@ export class ActivityService {
     const { id, distance, movingTime, elapsedTime, startDateLocal, timezone } =
       activity;
 
-    let activityMinPace = activity.averageSpeed / 1000
+    let activityMinPace = activity.averageSpeed / 1000;
 
-    let activityMaxPace = activity.averageSpeed / 1000
+    let activityMaxPace = activity.averageSpeed / 1000;
 
     if (splits_metric) {
       activityMinPace = splits_metric[0].moving_time / (splits_metric[0].distance / 1000);
@@ -658,17 +658,18 @@ export class ActivityService {
   }
 
   async manualCreateActivity(userId: number, manualCreateActivityDto: ManualCreateActivityDto) {
-    const { distance, startDate, movingTime } = manualCreateActivityDto;
+    const { distance, startDate, movingTime, imageUrl } = manualCreateActivityDto;
     const user = await this.prisma.user.findUnique({
       where: {
-        id: userId
-      }
-    })
+        id: userId,
+      },
+    });
     const id = uuidv4();
     const createActivityPayload: Prisma.ActivityUncheckedCreateInput = {
       distance,
       userId,
       id,
+      activityType: ActivityType.MANUAL,
     };
     if (movingTime) {
       const [hour, minute, second] = movingTime.split(':');
@@ -678,14 +679,18 @@ export class ActivityService {
       createActivityPayload.averageSpeed = (paceToSecond * 1000) / distance;
     }
 
-    let createDate = new Date()
+    if (imageUrl) {
+      createActivityPayload.imageUrl = imageUrl;
+    }
+
+    let createDate = new Date();
 
     if (startDate) {
-      createDate = new Date(startDate)
+      createDate = new Date(startDate);
     }
-    createActivityPayload.startDate = createDate
-    createActivityPayload.startDateLocal = createDate
-    createActivityPayload.name = `${user.name} - ${moment(createDate).tz('Asia/Bangkok').format('YYYYMMDDHHMM')}`
+    createActivityPayload.startDate = createDate;
+    createActivityPayload.startDateLocal = createDate;
+    createActivityPayload.name = `${user.name} - ${moment(createDate).tz('Asia/Bangkok').format('YYYYMMDDHHMM')}`;
 
     const activity = await this.prisma.activity.create({
       data: createActivityPayload,
@@ -696,7 +701,7 @@ export class ActivityService {
       activity,
     });
 
-    return activity
+    return activity;
   }
 
 }

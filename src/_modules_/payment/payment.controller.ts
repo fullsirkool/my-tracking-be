@@ -1,11 +1,10 @@
 import { Body, Controller, Get, Param, Post, Query, Sse, UseGuards } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CompletePaymentDto, FindPaymentDto } from './payment.dto';
-import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { fromEvent, Observable, take } from 'rxjs';
+import { fromEvent, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { CreateAdminDto } from '../admin/admin.dto';
 import { JwtAdminAuthGuard } from '../../guards/jwt-admin-auth.guard';
 
 @Controller('payment')
@@ -14,7 +13,8 @@ export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) {
+  }
 
   @Post('/complete')
   completeJoinChallenge(@Body() completePaymentDto: CompletePaymentDto) {
@@ -31,10 +31,10 @@ export class PaymentController {
     );
   }
 
-  @Get("")
+  @Get('')
   @UseGuards(JwtAdminAuthGuard)
   @ApiBearerAuth()
-  getPayment(@Query() findPaymentDto : FindPaymentDto) {
-    return this.paymentService.find(findPaymentDto)
+  getPayment(@Query() findPaymentDto: FindPaymentDto) {
+    return this.paymentService.find(findPaymentDto);
   }
 }

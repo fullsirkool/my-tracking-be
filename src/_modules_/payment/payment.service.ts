@@ -102,13 +102,14 @@ export class PaymentService {
     });
 
     let paymentId = createdPayment?.id;
-
+    const paymentCode = createdPayment ? createdPayment.paymentCode : moment().tz('Asia/Bangkok').toDate().getTime()
     if (!createdPayment) {
       const payment = await this.prisma.payment.create({
         data: {
           userId,
           challengeId,
           amount,
+          paymentCode: `${paymentCode}`,
         },
       });
       paymentId = payment.id;
@@ -125,7 +126,7 @@ export class PaymentService {
       acqId,
       accountName,
       amount: amount,
-      addInfo: `JOINCHALLENGE ${paymentId}`,
+      addInfo: `JOINCHALLENGE ${paymentCode}`,
       format: 'text',
       template: 'compact',
     };
@@ -149,7 +150,7 @@ export class PaymentService {
 
     return {
       ...data.data,
-      paymentId,
+      paymentCode,
       accountNo,
       bankName,
       tiketPrice: amount,
@@ -158,10 +159,10 @@ export class PaymentService {
 
   async complete(completePaymentDto: CompletePaymentDto) {
     const { message } = completePaymentDto;
-    const [mess, paymentId] = message.split(' ');
+    const paymentCode = this.desctructMessage(message)
     const payment = await this.prisma.payment.findUnique({
       where: {
-        id: +paymentId,
+        paymentCode,
       },
     });
 
@@ -170,7 +171,7 @@ export class PaymentService {
     await this.prisma.$transaction([
       this.prisma.payment.update({
         where: {
-          id: +paymentId,
+          paymentCode,
         },
         data: {
           isCompleted: true,
@@ -193,8 +194,8 @@ export class PaymentService {
       }),
     ]);
 
-    this.eventEmitter.emit(`complete-payment/${paymentId}`, {
-      data: { paymentId },
+    this.eventEmitter.emit(`complete-payment/${paymentCode}`, {
+      data: { paymentCode },
     });
 
     await this.challengeTaskQueue.add('import-activity', {
@@ -202,5 +203,18 @@ export class PaymentService {
       challengeId,
     });
     return { success: true };
+  }
+
+  private desctructMessage(sms) {
+    const amountRegex = /(\+|-)[\d,]+/;
+    const contentRegex = /ND: JOINCHALLENGE (\d+)/;
+    const match = sms.match(contentRegex);
+
+    if (match) {
+      const extractedText = match[1];
+      console.log(extractedText);
+      return extractedText
+    }
+    return null
   }
 }

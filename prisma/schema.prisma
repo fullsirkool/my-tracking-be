@@ -87,6 +87,8 @@ model Activity {
   visibility         String?
   averageSpeed       Float?              @map(name: "average_speed")
   maxSpeed           Float?              @map(name: "max_speed")
+  imageUrl           String?             @map(name: "image_url")
+  activityType       ActivityType        @default(SYNCHRONOUS) @map("activity_type")
   user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   challengeActivity  ChallengeActivity[]
 
@@ -140,6 +142,7 @@ model Rule {
 
 model Payment {
   id          Int         @id @unique @default(autoincrement())
+  paymentCode String      @unique @map("payment_code")
   userId      Int         @map("user_id")
   challengeId Int         @map("challenge_id")
   amount      Float       @map("amount")
@@ -208,4 +211,9 @@ enum ChallengeType {
 enum PaymentType {
   REGIST_FEE
   BONUS
+}
+
+enum ActivityType {
+  SYNCHRONOUS
+  MANUAL
 }

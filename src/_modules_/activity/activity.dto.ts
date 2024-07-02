@@ -66,4 +66,6 @@ export class ManualCreateActivityDto {
   startDate: string;
   @OptionalProperty()
   movingTime: string;
+  @OptionalProperty()
+  imageUrl: string;
 }
