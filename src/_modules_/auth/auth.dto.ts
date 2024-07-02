@@ -68,7 +68,6 @@ export class SignUpDto {
     required: true,
     description: 'This is require field',
   })
-  @IsStrongPassword()
   @IsNotEmpty()
   password: string;
 
