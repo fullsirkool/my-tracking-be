@@ -77,6 +77,9 @@ export class PaymentService {
             },
           },
         },
+        orderBy: {
+          createdAt: 'desc'
+        }
       }),
       this.prisma.payment.count({
         where: filter,
