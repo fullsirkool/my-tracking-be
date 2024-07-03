@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable, NotAcceptableException, NotFoundException} from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import {
@@ -161,19 +161,36 @@ export class PaymentService {
       paymentCode,
       accountNo,
       bankName,
-      tiketPrice: amount,
+      ticketPrice: amount,
       paymentMessage: `JOINCHALLENGE ${paymentCode}`,
     };
   }
 
   async complete(completePaymentDto: CompletePaymentDto) {
     const { message } = completePaymentDto;
-    const paymentCode = this.desctructMessage(message);
+    const mesage = this.desctructMessage(message);
+    if (!mesage) {
+      throw new NotFoundException('Not found content!')
+    }
+
+    const {amount, message: paymentCode} = mesage
+
     const payment = await this.prisma.payment.findUnique({
       where: {
         paymentCode,
       },
+      include: {
+        challenge: true
+      }
     });
+
+    if (!payment.challenge) {
+      throw new NotFoundException('Not found challenge!')
+    }
+
+    if (amount < payment.challenge.ticketPrice) {
+      throw new NotAcceptableException('Amount is lower than ticket price!')
+    }
 
     const { challengeId, userId } = payment;
 
@@ -226,7 +243,10 @@ export class PaymentService {
     if (match && transferredAmount) {
       const extractedText = match[1];
       console.log(extractedText);
-      return extractedText;
+      return {
+        message: extractedText,
+        amount: transferredAmount
+      };
     }
     return null;
   }
