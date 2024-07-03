@@ -328,7 +328,7 @@ export class ChallengeService {
 
       return {
         paymentInfor: payment,
-        status: 'WAITTING'
+        status: 'WAITING'
       }
     }
 

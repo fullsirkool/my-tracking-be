@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import {
   CompleteUserDto,
+  CreateManyDto,
   SignInDto,
   SignInGoogleDto,
   SignUpDto,
@@ -107,6 +108,28 @@ export class AuthService {
     //   findUser,
     // });
 
+    return { success: true };
+  }
+
+  async createMany(createManyDto: CreateManyDto) {
+    const { numberOfRecords, rootPassword, rootEmail } = createManyDto;
+    const arr = Array.from({ length: numberOfRecords });
+    console.log('arr', arr)
+    const [firstPart, secondPath] = rootEmail.split('@');
+    const saltOrRounds = +process.env.USER_SALT;
+    const hash = await bcrypt.hash(rootPassword, saltOrRounds);
+    await Promise.all(
+      arr.map((item, index) => {
+        return this.prisma.user.create({
+          data: {
+            email: `${firstPart}${index}@${secondPath}`,
+            password: hash,
+            name: `${firstPart}${index}`,
+            sex: 'Other',
+          }
+        });
+      }),
+    );
     return { success: true };
   }
 

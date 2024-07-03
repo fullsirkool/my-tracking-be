@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsStrongPassword } from 'class-validator';
+import { IsEmail, IsInt, IsNotEmpty, IsStrongPassword } from 'class-validator';
 import { UserClaims } from 'src/types/auth.types';
-import { OptionalProperty } from '../../decorators/validator.decorator';
+import {
+  IsInteger,
+  OptionalProperty,
+} from '../../decorators/validator.decorator';
 
 export class AuthDto {
   expireTime: number;
@@ -82,7 +85,6 @@ export class SignUpDto {
     required: true,
     description: 'This is require field',
   })
-
   @ApiProperty({
     required: true,
     description: 'This is require field',
@@ -114,4 +116,14 @@ export class SignInGoogleDto {
   token: string;
   @OptionalProperty()
   deviceToken: string;
+}
+
+export class CreateManyDto {
+  @ApiProperty({ required: true, description: 'This is required field' })
+  rootEmail: string;
+  @ApiProperty({ required: true, description: 'This is required field' })
+  rootPassword: string;
+  @ApiProperty({ required: true, description: 'This is required field' })
+  @IsInteger
+  numberOfRecords: number;
 }

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
-  CompleteUserDto,
+  CompleteUserDto, CreateManyDto,
   RenewDto,
   SignInDto,
   SignInGoogleDto,
@@ -39,6 +39,11 @@ export class AuthController {
   @Post('/signup')
   signUp(@Body() signUpDto: SignUpDto) {
     return this.authService.create(signUpDto);
+  }
+
+  @Post('/create-many')
+  createMany(@Body() createManyDto: CreateManyDto) {
+    return this.authService.createMany(createManyDto);
   }
 
   @ApiBody({ type: SignInDto })

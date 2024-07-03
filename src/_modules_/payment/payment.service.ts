@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
-import { CompletePaymentDto, CreatePaymentDto, FindPaymentDto } from './payment.dto';
+import {
+  CompletePaymentDto,
+  CreatePaymentDto,
+  FindPaymentDto,
+} from './payment.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { PaymentType, Prisma } from '@prisma/client';
@@ -18,8 +22,7 @@ export class PaymentService {
     private readonly httpService: HttpService,
     private readonly eventEmitter: EventEmitter2,
     @InjectQueue('challenge') private readonly challengeTaskQueue: Queue,
-  ) {
-  }
+  ) {}
 
   async find(findPaymentDto: FindPaymentDto) {
     const { createdAt, query, page, size } = findPaymentDto;
@@ -78,8 +81,8 @@ export class PaymentService {
           },
         },
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       }),
       this.prisma.payment.count({
         where: filter,
@@ -105,7 +108,9 @@ export class PaymentService {
     });
 
     let paymentId = createdPayment?.id;
-    const paymentCode = createdPayment ? createdPayment.paymentCode : moment().tz('Asia/Bangkok').toDate().getTime();
+    const paymentCode = createdPayment
+      ? createdPayment.paymentCode
+      : moment().tz('Asia/Bangkok').toDate().getTime();
     if (!createdPayment) {
       const payment = await this.prisma.payment.create({
         data: {
