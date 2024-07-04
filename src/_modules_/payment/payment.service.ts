@@ -27,7 +27,9 @@ export class PaymentService {
   async find(findPaymentDto: FindPaymentDto) {
     const { createdAt, query, page, size } = findPaymentDto;
     const skip = (page - 1) * size;
-    const filter: Prisma.PaymentWhereInput = {};
+    const filter: Prisma.PaymentWhereInput = {
+      isCompleted: true
+    };
     if (createdAt) {
       const startOfDay = moment(new Date(createdAt))
         .tz('Asia/Bangkok')
