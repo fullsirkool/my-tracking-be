@@ -132,7 +132,7 @@ export class ChallengeService {
         skip,
         where: findChallengeCondition,
         orderBy: {
-          startDate: 'desc',
+          createdDate: 'desc',
         },
       }),
       await this.prisma.challenge.count({ where: findChallengeCondition }),
