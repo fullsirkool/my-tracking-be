@@ -153,6 +153,7 @@ export class ChallengeService {
         WHERE chn.id = ch.id
         )::INT AS totalUserCount
         FROM challenge ch
+        WHERE ch.end_date > now()
         ORDER BY totalUserCount DESC LIMIT ${size} OFFSET ${offset}
     `
     return this.prisma.$queryRawUnsafe(query)
