@@ -109,10 +109,11 @@ model Challenge {
   title                  String
   startDate              DateTime                 @map("start_date")
   endDate                DateTime                 @map("end_date")
+  createdDate            DateTime                 @default(now()) @map("created_date")
   code                   String?                  @unique @default(uuid())
   image                  String?
   description            String?
-  ticketPrice            Float                    @default(0) @map("tiket_price")
+  ticketPrice            Float                    @default(0) @map("ticket_price")
   challengeType          ChallengeType            @default(ONE_VS_MANY) @map("challenge_type")
   status                 ChallengeStatus          @default(PUBLIC)
   challengeUsers         ChallengeUser[]
