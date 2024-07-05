@@ -1,11 +1,7 @@
-import {Injectable, NotAcceptableException, NotFoundException} from '@nestjs/common';
+import { Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
-import {
-  CompletePaymentDto,
-  CreatePaymentDto,
-  FindPaymentDto,
-} from './payment.dto';
+import { CompletePaymentDto, CreatePaymentDto, FindPaymentDto } from './payment.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { PaymentType, Prisma } from '@prisma/client';
@@ -22,13 +18,14 @@ export class PaymentService {
     private readonly httpService: HttpService,
     private readonly eventEmitter: EventEmitter2,
     @InjectQueue('challenge') private readonly challengeTaskQueue: Queue,
-  ) {}
+  ) {
+  }
 
   async find(findPaymentDto: FindPaymentDto) {
     const { createdAt, query, page, size, challengeId } = findPaymentDto;
     const skip = (page - 1) * size;
     const filter: Prisma.PaymentWhereInput = {
-      isCompleted: true
+      isCompleted: true,
     };
     if (createdAt) {
       const startOfDay = moment(new Date(createdAt))
@@ -67,10 +64,10 @@ export class PaymentService {
     }
 
     if (challengeId) {
-      filter.challengeId = challengeId;
+      filter.challengeId = Number(challengeId);
     }
 
-    const [payments, count] = await Promise.all([
+    const [payments, count, statistic] = await Promise.all([
       this.prisma.payment.findMany({
         where: filter,
         skip,
@@ -94,11 +91,36 @@ export class PaymentService {
       this.prisma.payment.count({
         where: filter,
       }),
+      this.findPaymentStatistics(challengeId),
     ]);
     return {
       ...getDefaultPaginationReponse(findPaymentDto, count),
+      statistic,
       data: payments,
     };
+  }
+
+  async findPaymentStatistics(challengeId: number) {
+    if (challengeId) {
+      const [amount, users] = await Promise.all([
+        this.prisma.payment.aggregate({
+          where: { challengeId: Number(challengeId), isCompleted: true },
+          _sum: {
+            amount: true,
+          },
+        }), this.prisma.challengeUser.aggregate({
+          where: { challengeId: Number(challengeId) },
+          _count: {
+            userId: true,
+          },
+        }),
+      ]);
+      return {
+        totalAmount: amount._sum.amount || 0,
+        totalUsers: users._count.userId,
+      };
+    }
+    return null;
   }
 
   async create(createPaymentDto: CreatePaymentDto) {
@@ -177,26 +199,26 @@ export class PaymentService {
     const { message } = completePaymentDto;
     const mesage = this.desctructMessage(message);
     if (!mesage) {
-      throw new NotFoundException('Not found content!')
+      throw new NotFoundException('Not found content!');
     }
 
-    const {amount, message: paymentCode} = mesage
+    const { amount, message: paymentCode } = mesage;
 
     const payment = await this.prisma.payment.findUnique({
       where: {
         paymentCode,
       },
       include: {
-        challenge: true
-      }
+        challenge: true,
+      },
     });
 
     if (!payment.challenge) {
-      throw new NotFoundException('Not found challenge!')
+      throw new NotFoundException('Not found challenge!');
     }
 
     if (amount < payment.challenge.ticketPrice) {
-      throw new NotAcceptableException('Amount is lower than ticket price!')
+      throw new NotAcceptableException('Amount is lower than ticket price!');
     }
 
     const { challengeId, userId } = payment;
@@ -252,7 +274,7 @@ export class PaymentService {
       console.log(extractedText);
       return {
         message: extractedText,
-        amount: transferredAmount
+        amount: transferredAmount,
       };
     }
     return null;

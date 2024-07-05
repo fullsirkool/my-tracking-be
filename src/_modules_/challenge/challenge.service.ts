@@ -6,7 +6,7 @@ import {
   CreateChallengeDto,
   FindChallengeDto,
   FindChallengeResponse,
-  FindChallengeUserDto,
+  FindChallengeUserDto, FindTopChallengeDto,
 } from './challenge.dto';
 import { BasePagingDto, BasePagingResponse } from 'src/types/base.types';
 import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
@@ -137,10 +137,25 @@ export class ChallengeService {
       }),
       await this.prisma.challenge.count({ where: findChallengeCondition }),
     ]);
+
     return {
       ...getDefaultPaginationReponse(findChallengeDto, count),
       data: challenges,
     };
+  }
+
+  async findTop(findTopChallengeDto: FindTopChallengeDto) {
+    const {page, size } = findTopChallengeDto
+    const offset = (page - 1) * size;
+    const query = `SELECT id, title, start_date as startDate, end_date as endDate, code, image, challenge_type as challengeType, status, tiket_price as tiketPrice, description, (SELECT COUNT(user_id)
+        FROM challenge_user cu
+        INNER JOIN challenge chn ON ch.id = cu.challenge_id
+        WHERE chn.id = ch.id
+        )::INT AS totalUserCount
+        FROM challenge ch
+        ORDER BY totalUserCount DESC LIMIT ${size} OFFSET ${offset}
+    `
+    return this.prisma.$queryRawUnsafe(query)
   }
 
   async findOne(id: number) {

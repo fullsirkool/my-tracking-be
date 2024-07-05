@@ -2,7 +2,13 @@ import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/co
 import { ChallengeService } from './challenge.service';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/decorators/user.decorator';
-import { CreateChallengeDto, FindChallengeDto, FindChallengeResponse, FindChallengeUserDto } from './challenge.dto';
+import {
+  CreateChallengeDto,
+  FindChallengeDto,
+  FindChallengeResponse,
+  FindChallengeUserDto,
+  FindTopChallengeDto,
+} from './challenge.dto';
 import { Auth } from 'src/decorators/auth.decorator';
 import { Challenge } from '@prisma/client';
 import { BasePagingDto } from 'src/types/base.types';
@@ -21,12 +27,12 @@ export class ChallengeController {
   async create(
     @Body() createChallengeDto: CreateChallengeDto,
   ): Promise<Challenge> {
-    return await this.challengeService.create(createChallengeDto);
+    return this.challengeService.create(createChallengeDto);
   }
 
   @Get('/code/:id')
   async generateCode(@Param('id') id: number): Promise<string> {
-    return await this.challengeService.getChallengeCode(+id);
+    return this.challengeService.getChallengeCode(+id);
   }
 
   @Post('/join/:id')
@@ -49,17 +55,24 @@ export class ChallengeController {
   async find(
     @Query() findChallengeDto: FindChallengeDto,
   ): Promise<FindChallengeResponse> {
-    return await this.challengeService.find(findChallengeDto);
+    return this.challengeService.find(findChallengeDto);
+  }
+
+  @Get('/top')
+  async findTop(
+    @Query() findTopChallengeDto: FindTopChallengeDto,
+  ) {
+    return this.challengeService.findTop(findTopChallengeDto);
   }
 
   @Get('/:id')
   async findOne(@Param('id') id: number): Promise<Challenge> {
-    return await this.challengeService.findOne(+id);
+    return this.challengeService.findOne(+id);
   }
 
   @Get('/:id/user')
   async findUserForChallenge(@Param('id') id: number, @Query() findChallengeUserDto: FindChallengeUserDto) {
-    return await this.challengeService.findUserForChallenge(id, findChallengeUserDto);
+    return this.challengeService.findUserForChallenge(id, findChallengeUserDto);
   }
 
   @Get('/user/joined/:id')
@@ -67,7 +80,7 @@ export class ChallengeController {
     @Param('id') id: number,
     @Query() pagination: BasePagingDto,
   ) {
-    return await this.challengeService.findJoinedChallengesByUser(
+    return this.challengeService.findJoinedChallengesByUser(
       id,
       pagination,
     );
@@ -79,7 +92,7 @@ export class ChallengeController {
     @Param('id') challengeId: number,
     @User('id') userId: number,
   ) {
-    return await this.challengeService.checkJoinChallenge(
+    return this.challengeService.checkJoinChallenge(
       {
         challengeId,
         userId,

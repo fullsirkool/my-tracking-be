@@ -90,3 +90,5 @@ export class FindChallengeUserDto extends BasePagingDto {
   @Transform((param) => param.value.split(','))
   sort?: string[] = ['totalDistance', 'desc'];
 }
+
+export class FindTopChallengeDto extends BasePagingDto {}
