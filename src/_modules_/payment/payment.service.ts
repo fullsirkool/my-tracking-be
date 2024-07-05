@@ -43,24 +43,10 @@ export class PaymentService {
     }
 
     if (query) {
-      filter.OR = [
-        {
-          challenge: {
-            title: {
-              mode: 'insensitive',
-              contains: query,
-            },
-          },
-        },
-        {
-          user: {
-            name: {
-              mode: 'insensitive',
-              contains: query,
-            },
-          },
-        },
-      ];
+      filter.user.name = {
+        mode: 'insensitive',
+        contains: query,
+      };
     }
 
     if (challengeId) {
