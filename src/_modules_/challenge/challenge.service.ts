@@ -1,7 +1,13 @@
 import { ConflictException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { Activity, Challenge, ChallengeUser, Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateChallengeDto, FindChallengeDto, FindChallengeResponse, FindChallengeUserDto } from './challenge.dto';
+import {
+  Availability,
+  CreateChallengeDto,
+  FindChallengeDto,
+  FindChallengeResponse,
+  FindChallengeUserDto,
+} from './challenge.dto';
 import { BasePagingDto, BasePagingResponse } from 'src/types/base.types';
 import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
 import * as moment from 'moment-timezone';
@@ -95,7 +101,7 @@ export class ChallengeService {
   async find(
     findChallengeDto: FindChallengeDto,
   ): Promise<FindChallengeResponse> {
-    const { page, size, userId } = findChallengeDto;
+    const { page, size, userId, availability } = findChallengeDto;
     const skip = (page - 1) * size;
 
     const findChallengeCondition: Prisma.ChallengeWhereInput = {};
@@ -106,6 +112,18 @@ export class ChallengeService {
           userId,
         },
       };
+    }
+
+    if (availability) {
+      if (availability === Availability.ENDED) {
+        findChallengeCondition.endDate = {
+          lte: moment().tz('Asia/Bangkok').toDate()
+        }
+      } else if (availability === Availability.NOT_ENDED) {
+        findChallengeCondition.endDate = {
+          gte: moment().tz('Asia/Bangkok').toDate()
+        }
+      }
     }
 
     const [challenges, count] = await Promise.all([

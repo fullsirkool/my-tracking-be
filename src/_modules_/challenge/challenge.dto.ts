@@ -1,19 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  Challenge,
-  ChallengeStatus,
-  ChallengeType,
-  User,
-} from '@prisma/client';
-import { IsDateString, IsInt, IsNotEmpty, IsString } from 'class-validator';
-import {
-  IsFloat,
-  IsInteger,
-  OptionalProperty,
-} from 'src/decorators/validator.decorator';
+import { Challenge, User } from '@prisma/client';
+import { IsBoolean, IsDateString, IsEnum, IsInt, IsNotEmpty } from 'class-validator';
+import { IsFloat, IsInteger, OptionalProperty } from 'src/decorators/validator.decorator';
 import { BasePagingDto } from 'src/types/base.types';
 import { BasePagingResponse } from './../../types/base.types';
 import { Transform } from 'class-transformer';
+
+export enum Availability {
+  ENDED = 'ENDED',
+  NOT_ENDED = 'NOT_ENDED'
+}
 
 export class CreateChallengeDto {
   @ApiProperty({ required: true })
@@ -65,9 +61,13 @@ export class FindChallengeDto extends BasePagingDto {
   @OptionalProperty()
   @IsInteger
   userId: number;
+  @OptionalProperty()
+  @IsEnum(Availability)
+  availability: Availability;
 }
 
-export class FindChallengeResponse extends BasePagingResponse<Challenge> {}
+export class FindChallengeResponse extends BasePagingResponse<Challenge> {
+}
 
 export interface ChallengeDetailDto extends Challenge {
   userActivities: ChallengeUserActivities[];

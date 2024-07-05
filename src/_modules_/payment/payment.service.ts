@@ -25,7 +25,7 @@ export class PaymentService {
   ) {}
 
   async find(findPaymentDto: FindPaymentDto) {
-    const { createdAt, query, page, size } = findPaymentDto;
+    const { createdAt, query, page, size, challengeId } = findPaymentDto;
     const skip = (page - 1) * size;
     const filter: Prisma.PaymentWhereInput = {
       isCompleted: true
@@ -65,6 +65,11 @@ export class PaymentService {
         },
       ];
     }
+
+    if (challengeId) {
+      filter.challengeId = challengeId;
+    }
+
     const [payments, count] = await Promise.all([
       this.prisma.payment.findMany({
         where: filter,

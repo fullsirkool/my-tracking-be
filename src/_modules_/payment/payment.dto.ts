@@ -15,9 +15,11 @@ export class CompletePaymentDto {
   message: string;
 }
 
-export class FindPaymentDto extends BasePagingDto{
+export class FindPaymentDto extends BasePagingDto {
   @OptionalProperty()
   createdAt: string;
-  @OptionalProperty({description: 'challenge name or user name'})
+  @OptionalProperty({ description: 'challenge name or user name' })
   query: string;
+  @OptionalProperty()
+  challengeId: number;
 }
