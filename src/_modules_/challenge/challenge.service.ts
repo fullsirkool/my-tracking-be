@@ -147,7 +147,7 @@ export class ChallengeService {
   async findTop(findTopChallengeDto: FindTopChallengeDto) {
     const {page, size } = findTopChallengeDto
     const offset = (page - 1) * size;
-    const query = `SELECT id, title, start_date as startDate, end_date as endDate, code, image, challenge_type as challengeType, status, tiket_price as tiketPrice, description, (SELECT COUNT(user_id)
+    const query = `SELECT id, title, start_date as "startDate", end_date as "endDate", code, image, challenge_type as "challengeType", status, tiket_price as "ticketPrice", description, (SELECT COUNT(user_id)
         FROM challenge_user cu
         INNER JOIN challenge chn ON ch.id = cu.challenge_id
         WHERE chn.id = ch.id
