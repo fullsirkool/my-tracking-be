@@ -176,6 +176,7 @@ export class PaymentService {
       paymentCode,
       accountNo,
       bankName,
+      accountName,
       ticketPrice: amount,
       paymentMessage: `JOINCHALLENGE ${paymentCode}`,
     };
