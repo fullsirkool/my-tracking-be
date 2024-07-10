@@ -184,6 +184,7 @@ export class PaymentService {
 
   async complete(completePaymentDto: CompletePaymentDto) {
     const { message } = completePaymentDto;
+    console.log('complete event!', new Date().getTime(), message);
     const destructedMessage = this.desctructMessage(message);
 
     if (!destructedMessage) {

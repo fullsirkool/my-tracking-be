@@ -23,7 +23,6 @@ export class PaymentController {
 
   @Sse('event/:id')
   sse(@Param('id') id: string): Observable<MessageEvent> {
-    console.log('send event!', id);
     return fromEvent(this.eventEmitter, `complete-payment/${id}`).pipe(
       map((data) => {
         return new MessageEvent('complete-payment', { data });
