@@ -155,6 +155,12 @@ model Payment {
   @@map("payment")
 }
 
+model PaymentMessages {
+  id          Int     @id @unique @default(autoincrement())
+  paymentCode String? @unique @map("payment_code")
+  message     String  @map("message_id")
+}
+
 model ChallengeUser {
   id          Int       @id @unique @default(autoincrement())
   userId      Int       @map("user_id")

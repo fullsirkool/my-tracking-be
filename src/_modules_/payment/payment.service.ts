@@ -184,12 +184,29 @@ export class PaymentService {
 
   async complete(completePaymentDto: CompletePaymentDto) {
     const { message } = completePaymentDto;
-    const mesage = this.desctructMessage(message);
-    if (!mesage) {
+    const destructedMessage = this.desctructMessage(message);
+    if (!destructedMessage) {
       throw new NotFoundException('Not found content!');
     }
 
-    const { amount, message: paymentCode } = mesage;
+    const { amount, message: paymentCode } = destructedMessage;
+
+    console.log(destructedMessage);
+
+    if (paymentCode) {
+      await this.prisma.paymentMessages.create({
+        data: {
+          paymentCode,
+          message: message,
+        },
+      });
+    } else {
+      await this.prisma.paymentMessages.create({
+        data: {
+          message: message,
+        },
+      });
+    }
 
     const payment = await this.prisma.payment.findUnique({
       where: {
@@ -210,7 +227,7 @@ export class PaymentService {
 
     const { challengeId, userId } = payment;
 
-    await this.prisma.$transaction([
+    const [updatedPayment, challengeUser] = await this.prisma.$transaction([
       this.prisma.payment.update({
         where: {
           paymentCode,
@@ -235,6 +252,9 @@ export class PaymentService {
         },
       }),
     ]);
+
+    console.log('updatedPayment', updatedPayment)
+    console.log('challengeUser', challengeUser)
 
     this.eventEmitter.emit(`complete-payment/${paymentCode}`, {
       data: { paymentCode },
