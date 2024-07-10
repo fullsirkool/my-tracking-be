@@ -269,7 +269,7 @@ export class PaymentService {
 
   private desctructMessage(sms) {
     const amountRegex = /(\+|-)[\d,]+/;
-    const contentRegex = /ND: JOINCHALLENGE (\d+)/;
+    const contentRegex = /JOINCHALLENGE (\d+)/;
     const match = sms.match(contentRegex);
     const amountMatch = sms.match(amountRegex);
     const transferredAmount = amountMatch
