@@ -185,7 +185,13 @@ export class PaymentService {
   async complete(completePaymentDto: CompletePaymentDto) {
     const { message } = completePaymentDto;
     const destructedMessage = this.desctructMessage(message);
+
     if (!destructedMessage) {
+      await this.prisma.paymentMessages.create({
+        data: {
+          message: message,
+        },
+      });
       throw new NotFoundException('Not found content!');
     }
 
