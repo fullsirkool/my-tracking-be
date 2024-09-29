@@ -1635,10 +1635,10 @@
     consola "^2.15.0"
     node-fetch "^2.6.1"
 
-"@prisma/client@^5.16.1":
-  version "5.16.1"
-  resolved "https://registry.yarnpkg.com/@prisma/client/-/client-5.16.1.tgz#65c5649b4701c097e7fa943c91a3140ce8bf053d"
-  integrity sha512-wM9SKQjF0qLxdnOZIVAIMKiz6Hu7vDt4FFAih85K1dk/Rr2mdahy6d3QP41K62N9O0DJJA//gUDA3Mp49xsKIg==
+"@prisma/client@lastest":
+  version "5.21.0-integration-itx-refactor.13"
+  resolved "https://registry.yarnpkg.com/@prisma/client/-/client-5.21.0-integration-itx-refactor.13.tgz#34ae9daeba1322dcfb1b05b21ded819fe9b57774"
+  integrity sha512-z5+9IGhcHO9x9wx365KjtSqJFOPL+M/q7PLVOtOQj3bKEQO/uYhlDrbFqZu3z42dQDQkECck7Ro1acNWZ9I7AQ==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
