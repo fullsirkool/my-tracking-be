@@ -40,9 +40,9 @@ export class ActivityController {
 
   @Get('/event')
   verify(@Query() params) {
-    const mode = params['hub.mode'];
-    const hub_challenge = params['hub.challenge'];
-    const verify_token = params['hub.verify_token'];
+    const mode = params['hub_mode'];
+    const hub_challenge = params['hub_challenge'];
+    const verify_token = params['hub_verify_token'];
     console.log('get event', mode, hub_challenge, verify_token);
     if (mode && verify_token) {
       // Verifies that the mode and token sent are valid
