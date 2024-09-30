@@ -12,7 +12,7 @@ export class FirebaseService implements OnModuleInit {
     };
     this.app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      storageBucket: 'my-tracking-b3e34.appspot.com',
+      storageBucket: process.env.STORAGE_BUCKET,
     });
   }
 
