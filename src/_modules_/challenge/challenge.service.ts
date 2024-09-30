@@ -166,27 +166,7 @@ export class ChallengeService {
       },
       include: {
         rule: true,
-        challengeActivity: {
-          select: {
-            activity: true,
-            user: {
-              select: {
-                id: true,
-                stravaId: true,
-                name: true,
-                profile: true,
-              },
-            },
-          },
-          where: {
-            isValid: true,
-          },
-          orderBy: {
-            activity: {
-              startDateLocal: 'asc',
-            },
-          },
-        },
+        challengeGroups: true,
       },
     });
 
@@ -194,13 +174,13 @@ export class ChallengeService {
       throw new NotFoundException('Not found challenge!');
     }
 
-    const { challengeActivity } = challenge;
-
-    const userActivities =
-      this.transformActivityToStatistics(challengeActivity);
-    const result = { ...challenge, userActivities: userActivities };
-    delete result.challengeActivity;
-    return result;
+    // const { challengeActivity } = challenge;
+    //
+    // const userActivities =
+    //   this.transformActivityToStatistics(challengeActivity);
+    // const result = { ...challenge, userActivities: userActivities };
+    // delete result.challengeActivity;
+    return challenge;
   }
 
   private transformActivityToStatistics(challengeActivity) {

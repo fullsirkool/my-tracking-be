@@ -27,6 +27,7 @@ model User {
   point                  Point?
   userTokens             UserToken[]
   payments               Payment[]
+  challengeGroupUser     ChallengeGroupUser[]
 
   @@map("user")
 }
@@ -121,8 +122,29 @@ model Challenge {
   challengeActivity      ChallengeActivity[]
   challengeDailyActivity ChallengeDailyActivity[]
   payments               Payment[]
+  challengeGroups        ChallengeGroup[]
 
   @@map("challenge")
+}
+
+model ChallengeGroup {
+  id                 Int                  @id @unique @default(autoincrement())
+  name               String
+  challengeId        Int                  @map("challenge_id")
+  challenge          Challenge            @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  challengeGroupUsers ChallengeGroupUser[]
+
+  @@map("challenge_group")
+}
+
+model ChallengeGroupUser {
+  id               Int            @id @unique @default(autoincrement())
+  challengeGroupId Int            @map("challenge_group_id")
+  userId           Int            @map("user_id")
+  challengeGroup   ChallengeGroup @relation(fields: [challengeGroupId], references: [id], onDelete: Cascade)
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("challenge_group_user")
 }
 
 model Rule {
