@@ -92,3 +92,8 @@ export class FindChallengeUserDto extends BasePagingDto {
 }
 
 export class FindTopChallengeDto extends BasePagingDto {}
+
+export class JoinChallengeDto {
+  @OptionalProperty()
+  groupId: number
+}

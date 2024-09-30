@@ -6,7 +6,7 @@ import {
   CreateChallengeDto,
   FindChallengeDto,
   FindChallengeResponse,
-  FindChallengeUserDto, FindTopChallengeDto,
+  FindChallengeUserDto, FindTopChallengeDto, JoinChallengeDto,
 } from './challenge.dto';
 import { BasePagingDto, BasePagingResponse } from 'src/types/base.types';
 import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
@@ -306,7 +306,8 @@ export class ChallengeService {
     return challengeUser;
   }
 
-  async joinChallengeNew(userId: number, challengeId: number) {
+  async joinChallengeNew(userId: number, challengeId: number, joinChallengeDto: JoinChallengeDto) {
+    const {groupId} = joinChallengeDto
     const createdChallengeUser = await this.prisma.challengeUser.findFirst({
       where: {
         userId,
@@ -360,6 +361,15 @@ export class ChallengeService {
         },
       },
     })
+
+    if (groupId) {
+      await this.prisma.challengeGroupUser.create({
+        data: {
+          challengeGroupId: groupId,
+          userId
+        },
+      })
+    }
 
     await this.challengeTaskQueue.add('import-activity', {
       userId,

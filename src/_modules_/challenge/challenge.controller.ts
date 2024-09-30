@@ -7,7 +7,7 @@ import {
   FindChallengeDto,
   FindChallengeResponse,
   FindChallengeUserDto,
-  FindTopChallengeDto,
+  FindTopChallengeDto, JoinChallengeDto,
 } from './challenge.dto';
 import { Auth } from 'src/decorators/auth.decorator';
 import { Challenge } from '@prisma/client';
@@ -37,9 +37,9 @@ export class ChallengeController {
 
   @Post('/join/:id')
   @Auth()
-  joinChallenge(@User('id') userId: number, @Param('id') id: number) {
+  joinChallenge(@User('id') userId: number, @Param('id') id: number, @Body() joinChallengeDto: JoinChallengeDto) {
     // return this.challengeService.joinChallenge(userId, +id);
-    return this.challengeService.joinChallengeNew(userId, +id);
+    return this.challengeService.joinChallengeNew(userId, +id, joinChallengeDto);
   }
 
   @Post('/join-test/:id')
