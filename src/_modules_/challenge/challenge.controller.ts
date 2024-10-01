@@ -75,6 +75,11 @@ export class ChallengeController {
     return this.challengeService.findUserForChallenge(id, findChallengeUserDto);
   }
 
+  @Get('/:id/group')
+  async getGroupStatistic(@Param('id') id: number) {
+    return this.challengeService.getGroupStatistic(id);
+  }
+
   @Get('/user/joined/:id')
   async findJoinedChallengesByUser(
     @Param('id') id: number,
