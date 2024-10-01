@@ -234,6 +234,7 @@ enum ChallengeStatus {
 
 enum ChallengeType {
   ONE_VS_MANY
+  GROUP_VS_GROUP
 }
 
 enum PaymentType {
