@@ -249,13 +249,24 @@ export class ChallengeService {
       INNER JOIN challenge ch ON ch.id = cu.challenge_id
       INNER JOIN "rule" r ON ch.id = r.challenge_id
       WHERE ch.id = ${challengeId}
-    )
-      SELECT *,
-        CASE WHEN (totalDistance / target) * 100 > 100 THEN 100
-      ELSE (totalDistance / target) * 100
-      END AS process
-      FROM USER_RESULT
-      ORDER BY ${sortField} ${order} LIMIT ${size} OFFSET ${offset}
+    ),
+      CHALLENGE_GROUP AS (
+        SELECT cg.id, cg.name	
+        FROM public.challenge_group cg
+        WHERE challenge_id = ${challengeId}
+      )
+      SELECT *, (
+        SELECT cg.name
+        FROM CHALLENGE_GROUP cg
+        INNER JOIN public.challenge_group_user cgu 
+        ON cgu.challenge_group_id = cg.id
+        WHERE cgu.user_id = USER_RESULT.id
+      ) as groupName,
+      CASE WHEN (totalDistance / target) * 100 > 100 THEN 100
+        ELSE (totalDistance / target) * 100
+          END AS process
+          FROM USER_RESULT
+          ORDER BY ${sortField} ${order} LIMIT ${size} OFFSET ${offset}
       `),
       this.prisma.challengeUser.count({
         where: {
