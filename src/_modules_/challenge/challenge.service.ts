@@ -626,7 +626,7 @@ export class ChallengeService {
               FROM public.challenge_activity ca
               INNER JOIN public.activity a
               ON ca.activity_id = a.id
-              WHERE a.user_id = cgu.user_id and ca.challenge_id = ${challengeId}
+              WHERE a.user_id = cgu.user_id and ca.challenge_id = ${challengeId} and ca.is_valid = true
           ) AS total_distance
           FROM public.challenge_group_user cgu
           WHERE cgu.challenge_group_id = cg.id)

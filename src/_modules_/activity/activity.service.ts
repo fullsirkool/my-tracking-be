@@ -360,6 +360,12 @@ export class ActivityService {
           isValid = false;
         }
       }
+
+      if (moment(challenge.startDate).tz('Asia/Bangkok').isAfter(startDateLocal) ||
+        moment(challenge.endDate).tz('Asia/Bangkok').isBefore(startDateLocal)) {
+        isValid = false
+      }
+
       return {
         activityId: `${id}`,
         challengeId: challenge.id,
@@ -377,7 +383,6 @@ export class ActivityService {
       timezone,
       DateRangeType.DAY,
     );
-    console.log('check import', id, first, second);
     const dailyChallengeActivities =
       await this.prisma.challengeDailyActivity.findMany({
         where: {
@@ -393,7 +398,6 @@ export class ActivityService {
       });
 
     if (!dailyChallengeActivities.length) {
-      console.log('don`t exist case', dailyChallengeActivities);
       const challengeDailyActivityPayload = challengeActivities.map((item) => {
         const { challengeId, userId } = item;
         const validActivity = item.isValid;
