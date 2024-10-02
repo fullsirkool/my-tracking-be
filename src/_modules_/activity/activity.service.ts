@@ -232,10 +232,6 @@ export class ActivityService {
       return;
     }
 
-    if (!max_speed) {
-      return;
-    }
-
     const foundedActivity = await this.findOneByActivityId(id);
 
     if (foundedActivity) {
@@ -359,11 +355,6 @@ export class ActivityService {
         if (activityMinPace < minPace) {
           isValid = false;
         }
-      }
-
-      if (moment(challenge.startDate).tz('Asia/Bangkok').isAfter(startDateLocal) ||
-        moment(challenge.endDate).tz('Asia/Bangkok').isBefore(startDateLocal)) {
-        isValid = false
       }
 
       return {
