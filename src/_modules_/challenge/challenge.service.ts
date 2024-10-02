@@ -609,7 +609,8 @@ export class ChallengeService {
   async getGroupStatistic(challengeId: number) {
     const query = `
       SELECT id, name, COALESCE((
-          SELECT (
+      SELECT SUM(total_distance) AS total_distance
+      FROM (SELECT (
               SELECT SUM(a.distance)
               FROM public.challenge_activity ca
               INNER JOIN public.activity a
@@ -617,7 +618,8 @@ export class ChallengeService {
               WHERE a.user_id = cgu.user_id and ca.challenge_id = ${challengeId}
           ) AS total_distance
           FROM public.challenge_group_user cgu
-          WHERE cgu.challenge_group_id = cg.id
+          WHERE cgu.challenge_group_id = cg.id)
+	
       ), 0) AS totalDistance 
       FROM public.challenge_group cg
       WHERE challenge_id = ${challengeId}
