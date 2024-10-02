@@ -232,6 +232,10 @@ export class ActivityService {
       return;
     }
 
+    if (!max_speed) {
+      return;
+    }
+
     const foundedActivity = await this.findOneByActivityId(id);
 
     if (foundedActivity) {
