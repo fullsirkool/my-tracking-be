@@ -261,7 +261,13 @@ export class ChallengeService {
         INNER JOIN public.challenge_group_user cgu 
         ON cgu.challenge_group_id = cg.id
         WHERE cgu.user_id = USER_RESULT.id
-      ) as groupName,
+      ) as groupName, (
+        SELECT cg.id
+        FROM CHALLENGE_GROUP cg
+        INNER JOIN public.challenge_group_user cgu 
+        ON cgu.challenge_group_id = cg.id
+        WHERE cgu.user_id = USER_RESULT.id
+      ) as groupid,
       CASE WHEN (totalDistance / target) * 100 > 100 THEN 100
         ELSE (totalDistance / target) * 100
           END AS process
