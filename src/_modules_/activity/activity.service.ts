@@ -279,11 +279,13 @@ export class ActivityService {
     const owner = await this.userService.findOne(userId);
 
     if (owner) {
+      const pace = moving_time / (distance / 1000);
+      const movingTimeFormat = this.getMovingTimeFormatted(moving_time);
+      const paceFormat = this.getAvgPace(distance, moving_time);
       await this.sendMessage({
-        message: `New Activity from ${owner.name}: ${name} - ${(distance / 1000).toFixed(1)}km \n ${process.env.STRAVA_REDIRECT_URL}/${id}`,
-      })
+        message: `New Activity from ${owner.name}\n ${name} - ${(distance / 1000).toFixed(1)}km - Moving time: ${movingTimeFormat} - Pace: ${paceFormat} \n ${process.env.STRAVA_REDIRECT_URL}/${id}`,
+      });
     }
-
 
 
     return activity;
@@ -720,6 +722,34 @@ export class ActivityService {
   async sendMessage(data: SendNotificationDto) {
     await this.notificationTaskQueue.add(NotificationJobs.sendTelegram, data);
     return { success: true };
+  }
+
+  getMovingTimeFormatted(movingTime: number) {
+    if (!movingTime) {
+      return '00:00:00';
+    }
+    let hour = 0;
+    let minute = '00';
+    let second = '00';
+    hour = Math.floor(movingTime / 3600);
+    const remainingSecondAfterHour = movingTime % 3600;
+    const remainingMinute = Math.floor(remainingSecondAfterHour / 60);
+    const remainingSecond = remainingSecondAfterHour % 60;
+
+    minute = remainingMinute > 9 ? `${remainingMinute}` : `0${remainingMinute}`;
+    second = remainingSecond > 9 ? `${remainingSecond}` : `0${remainingSecond}`;
+    return `${hour}:${minute}:${second}`;
+  }
+
+  getAvgPace(distance: number, movingTime: number) {
+    if (!movingTime) {
+      return '00:00';
+    }
+    const paceTime = movingTime / (distance / 1000) / 60;
+    const minute = Math.floor(paceTime);
+    const second = ((paceTime % 1) * 60).toFixed(0);
+
+    return `${minute}:${+second > 9 ? second : '0' + second}`;
   }
 
 }
