@@ -280,7 +280,7 @@ export class ActivityService {
 
     if (owner) {
       await this.sendMessage({
-        message: `New Activity from ${owner.name}: ${name} - ${distance} km \n ${process.env.STRAVA_REDIRECT_URL}/${id}`,
+        message: `New Activity from ${owner.name}: ${name} - ${(distance / 1000).toFixed(1)}km \n ${process.env.STRAVA_REDIRECT_URL}/${id}`,
       })
     }
 
