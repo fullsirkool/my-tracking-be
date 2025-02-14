@@ -75,13 +75,12 @@ export class ActivityController {
     return this.activityService.find(findActivityDto);
   }
 
-  @Delete('/:id')
+  @Delete('')
   async deleteOne(
-    @Param('id') id: string,
     @Body() deleteActivityDto: DeleteActivityDto,
   ) {
-    const { stravaId } = deleteActivityDto;
-    return this.activityService.deleteOne(stravaId, id);
+    const { stravaId, activityId } = deleteActivityDto;
+    return this.activityService.deleteOne(stravaId, activityId);
   }
 
   @Post('/send-message')

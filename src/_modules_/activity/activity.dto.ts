@@ -55,6 +55,9 @@ export class DeleteActivityDto {
   @ApiProperty()
   @IsInteger
   stravaId: number;
+  @ApiProperty()
+  @IsNotEmpty()
+  activityId: string;
 }
 
 export class ManualCreateActivityDto {
