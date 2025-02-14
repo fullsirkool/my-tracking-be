@@ -746,8 +746,13 @@ export class ActivityService {
       return '00:00';
     }
     const paceTime = movingTime / (distance / 1000) / 60;
-    const minute = Math.floor(paceTime);
-    const second = ((paceTime % 1) * 60).toFixed(0);
+    let minute = Math.floor(paceTime);
+    let second = ((paceTime % 1) * 60).toFixed(0);
+
+    if (second >= '60') {
+      minute += 1
+      second = '0'
+    }
 
     return `${minute}:${+second > 9 ? second : '0' + second}`;
   }
