@@ -2,6 +2,7 @@ export const Queues = {
   activity: 'activity',
   challenge: 'challenge',
   auth: 'auth',
+  notification: 'notification'
 } as const;
 
 export const ActivityJobs = {
@@ -16,3 +17,7 @@ export const AuthJobs = {
 export const ChallengeJobs = {
   importActivity: 'import-activity',
 } as const;
+
+export const NotificationJobs = {
+  sendTelegram: 'send-telegram',
+}

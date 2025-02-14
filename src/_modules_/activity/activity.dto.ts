@@ -69,3 +69,9 @@ export class ManualCreateActivityDto {
   @OptionalProperty()
   imageUrl: string;
 }
+
+export class SendNotificationDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  message: string;
+}

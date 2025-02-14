@@ -6,7 +6,7 @@ import {
   FindActivityDto,
   FindMonthlyActivityDto,
   ManualCreateActivityDto,
-  ManualImportActivityDto,
+  ManualImportActivityDto, SendNotificationDto,
 } from './activity.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -83,4 +83,10 @@ export class ActivityController {
     const { stravaId } = deleteActivityDto;
     return this.activityService.deleteOne(stravaId, id);
   }
+
+  @Post('/send-message')
+  async sendMessage(@Body() data: SendNotificationDto) {
+    return this.activityService.sendMessage(data);
+  }
+
 }

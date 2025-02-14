@@ -18,6 +18,9 @@ import { UserModule } from '../user/user.module';
     BullModule.registerQueue({
       name: Queues.activity,
     }),
+    BullModule.registerQueue({
+      name: Queues.notification,
+    }),
   ],
   controllers: [ActivityController],
   providers: [ActivityService, ActivityConsumer],

@@ -12,6 +12,7 @@ import {
   FindMonthlyActivityDto,
   ManualCreateActivityDto,
   ManualImportActivityDto,
+  SendNotificationDto,
 } from './activity.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
@@ -20,7 +21,8 @@ import { getDefaultPaginationReponse } from 'src/utils/pagination.utils';
 import { DateRangeType, getDateRange } from '../../utils/date-range.utils';
 import { UserService } from '../user/user.service';
 import { v4 as uuidv4 } from 'uuid';
-import moment from 'moment-timezone';
+import { NotificationJobs } from '../../types/queue.type';
+import * as process from 'node:process';
 
 @Injectable()
 export class ActivityService {
@@ -32,6 +34,7 @@ export class ActivityService {
     private readonly dailyActivityService: DailyActivityService,
     private readonly userService: UserService,
     @InjectQueue('activity') private readonly activityTaskQueue: Queue,
+    @InjectQueue('notification') private readonly notificationTaskQueue: Queue,
   ) {
   }
 
@@ -272,6 +275,16 @@ export class ActivityService {
       activity,
       splits_metric,
     });
+
+    const owner = await this.userService.findOne(userId);
+
+    if (owner) {
+      await this.sendMessage({
+        message: `New Activity from ${owner.name}: ${name} - ${distance} km \n ${process.env.STRAVA_REDIRECT_URL}/${id}`,
+      })
+    }
+
+
 
     return activity;
   }
@@ -687,7 +700,7 @@ export class ActivityService {
     if (startDate) {
       createDate = new Date(startDate);
     }
-    const activityName = `${user.name} - ${createDate.getTime()}`
+    const activityName = `${user.name} - ${createDate.getTime()}`;
     createActivityPayload.startDate = createDate;
     createActivityPayload.startDateLocal = createDate;
     createActivityPayload.name = activityName;
@@ -702,6 +715,11 @@ export class ActivityService {
     });
 
     return activity;
+  }
+
+  async sendMessage(data: SendNotificationDto) {
+    await this.notificationTaskQueue.add(NotificationJobs.sendTelegram, data);
+    return { success: true };
   }
 
 }

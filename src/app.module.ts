@@ -15,6 +15,8 @@ import { BullModule } from '@nestjs/bull';
 import { MailModule } from './_modules_/mail/mail.module';
 import { PaymentModule } from './_modules_/payment/payment.module';
 import { S3Module } from './_modules_/s3/s3.module';
+import { TelegramModule } from './_modules_/telegram/telegram.module';
+import { NotificationModule } from './_modules_/notification/notification.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { S3Module } from './_modules_/s3/s3.module';
     MailModule,
     PaymentModule,
     S3Module,
+    TelegramModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
