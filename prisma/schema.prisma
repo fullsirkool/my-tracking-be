@@ -128,10 +128,10 @@ model Challenge {
 }
 
 model ChallengeGroup {
-  id                 Int                  @id @unique @default(autoincrement())
-  name               String
-  challengeId        Int                  @map("challenge_id")
-  challenge          Challenge            @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  id                  Int                  @id @unique @default(autoincrement())
+  name                String
+  challengeId         Int                  @map("challenge_id")
+  challenge           Challenge            @relation(fields: [challengeId], references: [id], onDelete: Cascade)
   challengeGroupUsers ChallengeGroupUser[]
 
   @@map("challenge_group")

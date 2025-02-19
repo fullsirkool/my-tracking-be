@@ -23,6 +23,7 @@ import { UserService } from '../user/user.service';
 import { v4 as uuidv4 } from 'uuid';
 import { NotificationJobs } from '../../types/queue.type';
 import * as process from 'node:process';
+import { telegramUsername } from '../../constants/telegramUsername';
 
 @Injectable()
 export class ActivityService {
@@ -279,17 +280,33 @@ export class ActivityService {
     const owner = await this.userService.findOne(userId);
 
     if (owner) {
-      const pace = moving_time / (distance / 1000);
       const movingTimeFormat = this.getMovingTimeFormatted(moving_time);
       const paceFormat = this.getAvgPace(distance, moving_time);
+      const message = `${this.generateMessage(owner.name)}\n${name}\n- Distance: ${(distance / 1000).toFixed(2)}km\n- Moving time: ${movingTimeFormat}\n- Pace: ${paceFormat} \n ${process.env.STRAVA_REDIRECT_URL}/${id}`
       await this.sendMessage({
-        message: `New Activity from ${owner.name}\n${name}\n- Distance: ${(distance / 1000).toFixed(2)}km\n- Moving time: ${movingTimeFormat}\n- Pace: ${paceFormat} \n ${process.env.STRAVA_REDIRECT_URL}/${id}`,
+        message,
       });
     }
-
-
     return activity;
   }
+
+  private generateMessage = (ownerName: string) => {
+
+    const firstRandom = Math.floor(Math.random() * telegramUsername.length);
+    const targetName = telegramUsername[firstRandom]
+    const messages = [
+      `${targetName} bạn hãy nhìn xem ${ownerName} vừa có hoạt động mới này, hãy vận động đi nào`,
+      `${targetName} chắc chắn là cái ghế sofa êm ái lắm bạn nhỉ. Chỉ là ${ownerName} vừa mới có một hoạt động mới thôi`,
+      `${targetName} gần đây bạn có nhìn thấy đôi giày chạy bộ của mình không. ${ownerName} vừa mới xỏ giày vào và hoàn thành mục tiêu hôm nay đó`,
+      `${targetName} anh có đang ổn không?  Bị lạc trên đường đến đường chạy à?  Hay là bị một đàn chim bồ câu tấn công?  Hay là chỉ là...kiểu...không chạy? ${ownerName} vừa mới có hoạt động mới rồi này`,
+      `${targetName} đau chân? Mệt mỏi? Thời tiết xấu? Hay là tại... Mặt Trời mọc hướng Tây? Hãy kể thêm đi, ${ownerName} đang rất muốn lắng nghe những lời giải thích đó`,
+      `${targetName} thật ngưỡng mộ cách  mà bạn đang tích cực nghỉ ngơi. Rất tốt cho việc phục hồi sức khỏe. ${ownerName} có vẻ chọn nhầm giáo án vì vừa có một hoạt động mới`,
+      `${targetName} xin đừng lo lắng, mọi người đều hiểu mà. Chạy bộ rất khó. Ở nhà xem TV dễ hơn nhiều. ${ownerName} cảm thấy hoàn toàn thông cảm với điều đó`,
+    ];
+
+    const randomIndex = Math.floor(Math.random() * messages.length);
+    return messages[randomIndex];
+  };
 
   async importActivityStatistic(data) {
     const { userId, activity, splits_metric } = data;
@@ -750,8 +767,8 @@ export class ActivityService {
     let second = ((paceTime % 1) * 60).toFixed(0);
 
     if (second >= '60') {
-      minute += 1
-      second = '0'
+      minute += 1;
+      second = '0';
     }
 
     return `${minute}:${+second > 9 ? second : '0' + second}`;
