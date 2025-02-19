@@ -232,9 +232,9 @@ export class ActivityService {
     const match = timezone.match(/\((GMT[+-]\d{2}:\d{2})\) (.+)/);
     const timezoneIdentifier: string = match ? match[2] : undefined;
 
-    if (type !== 'Run') {
-      return;
-    }
+    // if (type !== 'Run') {
+    //   return;
+    // }
 
     const foundedActivity = await this.findOneByActivityId(id);
 
