@@ -282,7 +282,7 @@ export class ActivityService {
     if (owner) {
       const movingTimeFormat = this.getMovingTimeFormatted(moving_time);
       const paceFormat = this.getAvgPace(distance, moving_time);
-      const message = `${this.generateMessage(owner.name)}\n${name}\n- Distance: ${(distance / 1000).toFixed(2)}km\n- Moving time: ${movingTimeFormat}\n- Pace: ${paceFormat} \n ${process.env.STRAVA_REDIRECT_URL}/${id}`
+      const message = `New activity from ${owner.name}\n${name}\n- Distance: ${(distance / 1000).toFixed(2)}km\n- Moving time: ${movingTimeFormat}\n- Pace: ${paceFormat} \n ${process.env.STRAVA_REDIRECT_URL}/${id}`
       await this.sendMessage({
         message,
       });
