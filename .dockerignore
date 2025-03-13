@@ -1,0 +1,32 @@
+Dockerfile
+.dockerignore
+# Loại bỏ thư mục node_modules
+node_modules
+
+# Loại bỏ các file log
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Loại bỏ các file môi trường
+.env
+.env.*
+
+# Loại bỏ các file Git
+.git
+.gitignore
+
+# Loại bỏ các thư mục tạm thời hoặc không cần thiết
+dist
+coverage
+tmp
+.vscode
+.DS_Store
+.vagrant
+
+# Loại bỏ các file build cụ thể
+*.swp
+*.swo
+.idea
+*.iml
